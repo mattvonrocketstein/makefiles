@@ -5,7 +5,7 @@ MAKEFLAGS += --warn-undefined-variables
 # current_dir := $(notdir $(patsubst %/,%,$(dir $(mkfile_path))))
 THIS_MAKEFILE = $(abspath $(firstword $(MAKEFILE_LIST)))
 SRC_ROOT := $(shell dirname ${THIS_MAKEFILE})
-MAKE_INCLUDES_DIR := .
+MAKE_INCLUDES_DIR := ${SRC_ROOT}/makefiles
 
 # Makefile.base.mk:
 #   Load essentials like user-output conveniences and some
@@ -67,9 +67,9 @@ remote-container-shell:
 	SERVICE=${APP_NAME} COMPOSE_FILE=${APP_DEPLOY_ROOT}/docker-compose.yml \
 	SERVICE_USER=root make service-shell
 
-# composite example: dump terraform output into a format ansible can use.  this obviously
-# requires terraform and working, accessible terraform state.  the target below
-# combines other targets from Makefile.json.mk, Makefile.tf.mk and
+# composite example: dump terraform output into a format ansible can use.  this
+# obviously requires terraform and working, accessible terraform state.  the
+# target below combines other targets from Makefile.json.mk, Makefile.tf.mk and
 # Makefile.ansible.mk
 ANSIBLE_VARS_TF = ${ANSIBLE_ROOT}/terraform.yml
 refresh-ansible-vars:
@@ -79,4 +79,5 @@ refresh-ansible-vars:
 	@printf "# See the 'refresh-ansible-vars' target in environment Makefile's\n" >> ${ANSIBLE_VARS_TF}
 	@terraform output -json | wrapper=terraform make json-wrap | make json-to-yaml >> ${ANSIBLE_VARS_TF}
 
-# example: provision with ansible
+# example: force ansible playbook choice of "$host.yml" for inventory "$host,"
+provision-host:
