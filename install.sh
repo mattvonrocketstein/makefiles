@@ -23,6 +23,5 @@ else
   echo "not overwriting Makefile already exists"
 fi
 popd
-echo rm -rf "$tmpd"
 
 # git clone --depth=1 $MAKEFILES_REPO

@@ -1,4 +1,3 @@
-
 # Function & target for implicit guards that assert environment variables.
 # These are usually used by other targets to ensure that environment variables
 # are set before starting.
@@ -22,6 +21,18 @@ assert-%:
 #
 require-%:
 	echo "not implemented yet"
+
+# boilerplate that causes `make help` and `make list` to
+# publish all the make-target names to stdout.  this mostly
+# works correctly even with usage of `include`
+.PHONY: no_targets__ list
+no_targets__:
+list-helper:
+	@sh -c "$(MAKE) -p no_targets__ | awk -F':' '/^[a-zA-Z0-9][^\$$#\/\\t=]*:([^=]|$$)/ {split(\$$1,A,/ /);for(i in A)print A[i]}' | grep -v '__\$$' | sort"
+help:
+	$(call _announce_target, $@)
+	@make list-helper|grep -v Makefile|grep -v assert-.*
+list: help
 
 # Helpers and data for user output things
 #

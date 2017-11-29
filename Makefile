@@ -47,6 +47,7 @@ needy: assert-ENVVAR1 assert-ENVVAR2
 
 # example: Deploy this project dir to app-host
 sync:
+	$(call _announce_target, $@)
   RSYNC_USER=${APP_HOST_USER} RSYNC_HOST=${APP_HOST} \
   RSYNC_KEY=${APP_HOST_KEY} RSYNC_SRC=${APP_ROOT}/* \
   RSYNC_DEST=${APP_DEPLOY_ROOT} \
@@ -54,11 +55,13 @@ sync:
 
 # example: target to connect via SSH to the standard app host
 ssh:
+	$(call _announce_target, $@)
 	SSH_USER=${APP_HOST_USER} SSH_HOST=${APP_HOST} \
 	SSH_KEY=${APP_HOST_key} make ssh-generic
 
 # example: target chaining to the `ssh` target to run a specific command
 remote-cmd:
+	$(call _announce_target, $@)
 	SSH_CMD="echo \"helloworld\"" make ssh
 
 # example: a target chaining to `service-shell` (in Makefile.docker.mk).
@@ -81,3 +84,4 @@ refresh-ansible-vars:
 
 # example: force ansible playbook choice of "$host.yml" for inventory "$host,"
 provision-host:
+	$(call _announce_target, $@)
