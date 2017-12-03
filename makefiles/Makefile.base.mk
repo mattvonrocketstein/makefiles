@@ -16,11 +16,9 @@ endef
 assert-%:
 	$(call _assert_var, $*)
 
-#
-#
-#
+# example:
 require-%:
-	echo "not implemented yet"
+	which $*
 
 # boilerplate that causes `make help` and `make list` to
 # publish all the make-target names to stdout.  this mostly
@@ -53,3 +51,12 @@ WARN_STRING=$(WARN_COLOR)[WARNING]$(NO_COLOR)
 define _announce_target
 	@printf "$(COLOR_GREEN)[target]:$(NO_COLOR) $@\n"
 endef
+
+# example:
+define _fail
+	@INDENTION="  " \
+	printf "$(COLOR_RED)[FAIL]:$(NO_COLOR)\n$${INDENTION}${1}\n"
+	exit 1
+endef
+fail:
+	$(call _fail, $${MSG})

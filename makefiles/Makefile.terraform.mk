@@ -1,0 +1,62 @@
+# Workflows for terraform.  This is most useful in that you can set/change your
+# global `terraform` executable by overriding the makefile's ${TERRAFORM_EXEC}.
+#
+# Usage for this file as an include follow.
+# Suggested variable-overrides in your toplevel Makefile:
+#
+#   TERRAFORM_EXEC := terraform
+#
+
+# A target to ensure fail-fast if terraform is not present
+require-tf:
+	${TERRAFORM_EXEC} --version &> /dev/null
+
+# Target for simple proxy to terraform, "refresh" subcommand
+tf-refresh:
+	$(call _announce_target, $@)
+	${TERRAFORM_EXEC} refresh
+
+# A target that sets $TMP_TARGET (makefile) from $$target (bash)
+# See `tf-plan` and `tf-apply` targets, which use this as a prereq
+tf-set-tf-target:
+	$(call _announce_target, $@)
+	$(eval TMP_TARGET := $(shell bash -c '[ "$${target}" = "" ] && echo ""|| echo "-target=$${target}"'))
+	@echo "set target: ${TMP_TARGET}"
+
+# Target for simple proxy to terraform, "plan" subcommand.
+#
+# example usage (plan everything):
+#    make tf-plan
+# example usage (plan with target):
+#    target=module.mymodule make tf-plan
+tf-plan: tf-set-tf-target
+	$(call _announce_target, $@)
+	${TERRAFORM_EXEC} plan ${TMP_TARGET}
+
+# Target for simple proxy to terraform, "apply" subcommand.
+#
+# example usage (apply everything):
+#    make tf-apply
+# example usage (apply with target):
+#    target=module.mymodule make tf-apply
+tf-apply: tf-set-tf-target
+	$(call _announce_target, $@)
+	${TERRAFORM_EXEC} apply
+
+# Target for simple proxy to terraform, "get" subcommand.
+tf-get:
+	$(call _announce_target, $@)
+	${TERRAFORM_EXEC} get
+
+
+# Target for simple proxy to terraform, "taint" subcommand
+tf-taint: tf-set-tf-target
+	$(call _announce_target, $@)
+	${TERRAFORM_EXEC} taint
+
+# Target to create a png graph of terraform resources.
+# Requires dot.  TODO: see what can be done here
+# to make a graph that ISNT so huge it's worthless
+tf-graph:
+	$(call _announce_target, $@)
+	${TERRAFORM_EXEC} graph | dot -Tpng > graph.png

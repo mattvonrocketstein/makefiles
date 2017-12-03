@@ -1,14 +1,4 @@
 set -x
-DEFAULT_REPO="https://github.com/mattvonrocketstein/makefiles.git"
-MAKEFILES_REPO=${MAKEFILES_REPO:-${DEFAULT_REPO}}
-PROJECT_DIR=`pwd`
-LIB_DIR=${PROJECT_DIR}/makefiles
-PROJECT_FILE="${PROJECT_DIR}/Makefile"
-
-echo "$LIB_DIR:"
-if [ ! -d $LIB_DIR ]; then
-  mkdir -p $LIB_DIR
-fi
 
 #clone
 tmpd=`mktemp -d`
@@ -23,5 +13,11 @@ else
   echo "not overwriting Makefile already exists"
 fi
 popd
+echo "$LIB_DIR:"
+if [ ! -d $LIB_DIR ]; then
+  mkdir -p $LIB_DIR
+fi
+
+
 
 # git clone --depth=1 $MAKEFILES_REPO
