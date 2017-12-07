@@ -1,3 +1,5 @@
+SSH_OPTS := -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
+
 # Generic rsync method, suitable for synchronizing with a remote codebase
 #
 # usage: see main Makefile for demo
@@ -19,9 +21,23 @@ rsync: assert-RSYNC_USER assert-RSYNC_KEY assert-RSYNC_DEST assert-RSYNC_SRC ass
 # file may wish to override
 #
 # usage example: see main Makefile for demo
-SSH_OPTS := -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
-ssh-generic: assert-SSH_USER assert-SSH_HOST assert-SSH_KEY
+set-ssh-cmd:
 	$(call _announce_target, $@)
-	ssh -tt ${SSH_OPTS} \
-	 	-i $${SSH_KEY} -l $${SSH_USER} \
-		$${SSH_HOST} $${SSH_CMD}
+	$(eval SSH_CMD ?= $${SSH_CMD:-bash})
+	@echo 'set SSH_CMD: ${SSH_CMD}'
+
+ssh-generic: assert-SSH_USER assert-SSH_HOST assert-SSH_KEY set-ssh-cmd
+	$(call _announce_target, $@)
+	ssh -A -tt $(value SSH_OPTS) \
+	-i $(value SSH_KEY) -l $(value SSH_USER) $(value SSH_HOST) \
+	"$(value SSH_CMD)"
+scp-generic: scp-push
+scp-push: assert-SSH_USER assert-SSH_HOST assert-SSH_KEY
+	$(call _announce_target, $@)
+	scp $(value SSH_OPTS) -i $(value SSH_KEY) $(value SRC) $(value SSH_USER)@$(value SSH_HOST):$(value DEST)
+scp-pull: assert-SSH_USER assert-SSH_HOST assert-SSH_KEY
+	$(call _announce_target, $@)
+	scp $(value SSH_OPTS) -i $(value SSH_KEY) $(value SSH_USER)@$(value SSH_HOST):$(value SRC) $(value DEST)
+
+keygen: assert-KEY
+	ssh-keygen -N '' -f $$KEY

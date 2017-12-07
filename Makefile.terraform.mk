@@ -48,6 +48,16 @@ tf-get:
 	$(call _announce_target, $@)
 	${TERRAFORM_EXEC} get
 
+# Target for simple proxy to terraform, "get" subcommand.
+tf-init:
+	$(call _announce_target, $@)
+	${TERRAFORM_EXEC} init
+
+# Target for simple proxy to terraform, "output" subcommand, default to json out
+# This version is quiet, and suitable for piping with i.e.
+# `make tf-output|make json-to-yaml`
+tf-output:
+	@${TERRAFORM_EXEC} output -json
 
 # Target for simple proxy to terraform, "taint" subcommand
 tf-taint: tf-set-tf-target

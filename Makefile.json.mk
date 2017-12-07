@@ -5,7 +5,7 @@
 
 # A prereq target to ensure fail-fast if jq is not present
 require-jq:
-	jq --version &> /dev/null
+	@jq --version &> /dev/null
 
 # Target for use with pipes.  This performs fairly naive
 # JSON-to-yaml conversion, using `default_flow_style` to
@@ -22,5 +22,14 @@ json-to-yaml:
 #
 # example usage:
 #   $ terraform output -json | wrapper=terraform make json-wrap
-json-wrap: assert-wrapper
+json-wrapper:
+	@make assert-wrapper > /dev/null
 	@python -c "import os, sys, json; print json.dumps({ os.environ['wrapper']: json.loads(sys.stdin.read())})"
+
+# usage example:
+#  $ echo '{"a": "a", "b": null}' | make json-filter-keys-with-null-value
+#  {"a": "a"}
+json-filter-keys-with-null-value:
+	@# placeholder
+	$(call _announce_target, $@)
+	@cat /dev/stdin | jq 'del(.[] | nulls)'
