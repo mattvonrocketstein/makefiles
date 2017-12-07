@@ -26,6 +26,26 @@
 #   ECS_CLUSTER:=app-ecs-ECSCluster-IDNUM
 
 
+ecr-login:
+	$$(AWS_PROFILE=${AWS_PROFILE} aws \
+	ecr get-login --no-include-email --region ${AWS_REGION})
+
+ecr-create-repo: require-jq assert-ECR_PROJECT
+	$(call _announce_target, $@)
+	AWS_PROFILE=${AWS_PROFILE} AWS_DEFAULT_REGION=${AWS_REGION} \
+	aws ecr describe-repositories | \
+	jq '.repositories[].repositoryName | select(test ("$${ECR_PROJECT}"))' \
+	> ecr-repos-filtered.json
+	[[ -z "`cat ecr-repos-filtered.json`" ]] && \
+	AWS_PROFILE=${AWS_PROFILE} AWS_DEFAULT_REGION=${AWS_REGION} \
+	aws ecr create-repository --repository-name $${ECR_PROJECT} || \
+	echo "repo already exists"
+
+ecr-push: ecr-login assert-TAG assert-ECR_BASE assert-ECR_NAMESPACE
+	$(call _announce_target, $@)
+	docker tag $${TAG} $${ECR_BASE}/$${ECR_NAMESPACE}/$${TAG}
+	docker push $${ECR_BASE}/$${ECR_NAMESPACE}/$${TAG}
+
 # Retrieve and unpack service list JSON from ECS_CLUSTER
 #
 # Outputs JSON like:

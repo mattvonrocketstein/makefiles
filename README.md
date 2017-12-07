@@ -1,6 +1,6 @@
 ## About
 
-I'm honestly the type of person who never thought they would have a `makefiles` repository, but here it is.  
+I'm honestly the type of person who never thought they would have a "makefiles" repository, but here it is.  This is a library of specific, useful, and reusable code for automating stuff with GNU Make.
 
 ## Rationale
 
@@ -11,6 +11,23 @@ Makefile based automation is not my favorite thing, for a variety of reasons.  I
 But in a world with Gulpfiles, Rakefiles, Fabfiles, and many other options for project automation, Makefile's feel like a lightweight and mostly dependency-free approach.  It's nice that any Jenkins instance or development environment probably already has `make`.  
 
 Makefiles also have the benefit that they don't commit itself to any preference for say Python, Ruby or JS at all, and much less a specific version of any of the above, so polyglot development shops tend to appreciate that
+
+## Tools
+
+**Makefile.ansible-vault.mk:** lightweight crypto workflows with [Ansible vault](#)
+**[Makefile.ansible.mk](#):** stuff for working with [Ansible](#)
+**[Makefile.aws-ecs.mk](#):** helpers for working with [AWS ECS](#)
+**[Makefile.bastion.mk](#):**
+**[Makefile.cloudformation.mk](#):**
+**[Makefile.docker.mk](#):**
+**[Makefile.git.mk](#):**
+**[Makefile.json.mk](#):**
+**[Makefile.self.mk](#):**
+**[Makefile.ssh.mk](#):**
+**[Makefile.terraform.mk](#):**
+**[Makefile.toplevel-template.mk](#):**
+
+**[Makefile.base.mk](#):** Baseline stuff that pretty much all the other Makefile's will require, including colored output for users and assertions on environment variables.  One of the few places that defines make-functions instead of just using make-targets.
 
 ## Design Overview
 
@@ -24,4 +41,12 @@ Makefiles also have the benefit that they don't commit itself to any preference 
 
 The usage guide that follows assume your project doesn't already have a top level Makefile.  If you do already have one, you'll want to take a look at the example top-level makefile [here](Makefile.toplevel-template.mk) and figure out how to combine things for the results you want.
 
-We'll also assume you want to set things up so as to potentially track upstream changes in this automation library (or your fork of it) but that's optional.  As a library, this repo and it's license are such that you can chop it up and remix it, so feel free to use any hacky copy/paste/modify workflow that makes you happy.
+We'll also assume you want to set things up so as to potentially track upstream changes in this automation library (or your fork of it) but that's optional.  
+
+Inside your project directory run:
+
+    git submodule add git@github.com:mattvonrocketstein/makefiles.git .makefiles
+    git submodule update --init
+    cp .makefiles/Makefile.toplevel-template.mk Makefile
+
+Now edit your toplevel Makefile to only include the domain-specific automation stuff that you need.
