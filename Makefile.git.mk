@@ -23,6 +23,7 @@ git-update-fork-from-upstream: git-assert-upstream
 	git checkout master
 	git merge upstream/master
 	git push
+fork-update: git-update-fork-from-upstream
 
 git-assert-upstream:
 	git remote|grep upstream

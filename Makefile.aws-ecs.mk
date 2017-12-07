@@ -55,7 +55,7 @@ ecr-push: ecr-login assert-TAG assert-ECR_BASE assert-ECR_NAMESPACE
 #
  ecs-list-services-json: assert-ECS_CLUSTER
 	$(call _announce_target, $@)
-	@AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION} AWS_PROFILE=${AWS_PROFILE} aws \
+	@AWS_DEFAULT_REGION=${AWS_REGION} AWS_PROFILE=${AWS_PROFILE} aws \
 	ecs list-services --cluster ${ECS_CLUSTER} \
 	| jq ".serviceArns"
 
@@ -72,7 +72,7 @@ ecs-describe-services:
 	@# Retrieves service JSON from service ARN list
 	$(call _announce_target, $@)
 	$(eval ARN_LIST:=`make ecs-list-services-string`)
-	@AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION} AWS_PROFILE=${AWS_PROFILE} aws \
+	@AWS_DEFAULT_REGION=${AWS_REGION} AWS_PROFILE=${AWS_PROFILE} aws \
 	ecs describe-services --cluster ${ECS_CLUSTER} --services ${ARN_LIST}
 
 ecs-task-definitions:
@@ -97,7 +97,7 @@ ecs-describe-tasks:
 ecs-describe-task: assert-TASK_ARN
 	@# placeholder
 	$(call _announce_target, $@)
-	@AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION} AWS_PROFILE=${AWS_PROFILE} \
+	@AWS_DEFAULT_REGION=${AWS_REGION} AWS_PROFILE=${AWS_PROFILE} \
 	aws ecs describe-task-definition --task-definition $${TASK_ARN}
 
 ecs-patch-task-definition: assert-TASK_ARN assert-TASK_IMAGE
@@ -130,5 +130,5 @@ ecs-post-task-revision: assert-TASK_ARN assert-TASK_IMAGE
 	cpu: .cpu, memory: .memory})
 	make ecs-patch-task-definition | jq "${API_MAP}" | \
 	make json-filter-keys-with-null-value > update.json;
-	AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION} AWS_PROFILE=${AWS_PROFILE} \
+	AWS_DEFAULT_REGION=${AWS_REGION} AWS_PROFILE=${AWS_PROFILE} \
 	aws ecs register-task-definition --cli-input-json file://update.json
