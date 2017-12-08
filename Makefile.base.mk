@@ -25,7 +25,7 @@
 #		export ANSIBLE_VAULT_PASSWORD_FILE
 
 define _announce_assert
-	@printf "$(COLOR_YELLOW)[assert]:$(NO_COLOR)${1} (=$2)\n" 1>&2;
+	@printf "$(COLOR_YELLOW)[${1}]:$(NO_COLOR) (=$2)\n" 1>&2;
 endef
 define _log
 	@printf "$(COLOR_YELLOW)[log]:$(NO_COLOR)${1}\n" 1>&2;

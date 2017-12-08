@@ -26,10 +26,14 @@
 #   ECS_CLUSTER:=app-ecs-ECSCluster-IDNUM
 
 
+# example usage:
+#
 ecr-login:
 	$$(AWS_PROFILE=${AWS_PROFILE} aws \
 	ecr get-login --no-include-email --region ${AWS_REGION})
 
+# example usage:
+#
 ecr-create-repo: require-jq assert-ECR_PROJECT
 	$(call _announce_target, $@)
 	AWS_PROFILE=${AWS_PROFILE} AWS_DEFAULT_REGION=${AWS_REGION} \
@@ -38,9 +42,11 @@ ecr-create-repo: require-jq assert-ECR_PROJECT
 	> ecr-repos-filtered.json
 	[[ -z "`cat ecr-repos-filtered.json`" ]] && \
 	AWS_PROFILE=${AWS_PROFILE} AWS_DEFAULT_REGION=${AWS_REGION} \
-	aws ecr create-repository --repository-name $${ECR_PROJECT} || \
+	aws ecr create-repository --repository-name ${ECR_PROJECT} || \
 	echo "repo already exists"
 
+# example usage:
+#
 ecr-push: ecr-login assert-TAG assert-ECR_BASE assert-ECR_NAMESPACE
 	$(call _announce_target, $@)
 	docker tag $${TAG} $${ECR_BASE}/$${ECR_NAMESPACE}/$${TAG}
@@ -59,15 +65,20 @@ ecr-push: ecr-login assert-TAG assert-ECR_BASE assert-ECR_NAMESPACE
 	ecs list-services --cluster ${ECS_CLUSTER} \
 	| jq ".serviceArns"
 
+# example usage:
 #
 ecs-list-services-string:
 	@# Turn a JSON list [x,y,z] into a space-separated string like 'x y z'
 	@make ecs-list-services-json | jq -r -c ".[]" | tr '\r\n' ' '
 
+# example usage:
+#
 ecs-deployments:
 	@# Unpack deployment information from service-json
 	@make ecs-describe-services | jq -r ".services[].deployments"
 
+# example usage:
+#
 ecs-describe-services:
 	@# Retrieves service JSON from service ARN list
 	$(call _announce_target, $@)
@@ -75,12 +86,16 @@ ecs-describe-services:
 	@AWS_DEFAULT_REGION=${AWS_REGION} AWS_PROFILE=${AWS_PROFILE} aws \
 	ecs describe-services --cluster ${ECS_CLUSTER} --services ${ARN_LIST}
 
+# example usage:
+#
 ecs-task-definitions:
 	@# give back a newline-separated string of task-definition ARNs
 	$(call _announce_target, $@)
 	@make ecs-deployments | jq -r -c ".[].taskDefinition"
 ecs-get-tasks: ecs-task-definitions
 
+# example usage:
+#
 ecs-task-map: assert-TARGET
 	@# this is `map`from function programming, i.e. apply
 	@# the given make target across each of the task ARNs
@@ -90,16 +105,22 @@ ecs-task-map: assert-TARGET
 		TASK_ARN=$${TASK_ARN} make $${TARGET}; \
 	done
 
+# example usage:
+#
 ecs-describe-tasks:
 	$(call _announce_target, $@)
 	TARGET=ecs-describe-task make ecs-task-map
 
+# example usage:
+#
 ecs-describe-task: assert-TASK_ARN
 	@# placeholder
 	$(call _announce_target, $@)
 	@AWS_DEFAULT_REGION=${AWS_REGION} AWS_PROFILE=${AWS_PROFILE} \
 	aws ecs describe-task-definition --task-definition $${TASK_ARN}
 
+# example usage:
+#
 ecs-patch-task-definition: assert-TASK_ARN assert-TASK_IMAGE
 	@# This patches the docker image used by $TASK_ARN without side effects,
 	@# in other words returning patched JSON you can push from i.e.
@@ -108,11 +129,14 @@ ecs-patch-task-definition: assert-TASK_ARN assert-TASK_IMAGE
 	@make ecs-describe-task > tmp.json;
 	@cat tmp.json|jq '.taskDefinition.containerDefinitions[].image|="$(value TASK_IMAGE)"'
 
+# example usage:
+#
 ecs-service-update: assert-ECS_CLUSTER assert-ECS_SERVICE
 	@# placeholder
 	$(call _announce_target, $@)
 
-
+# example usage:
+#
 ecs-post-task-revision: assert-TASK_ARN assert-TASK_IMAGE
 	@# placeholder
 	$(call _announce_target, $@)
