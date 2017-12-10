@@ -6,19 +6,25 @@
       <small><small>
         <a href=#Features>Features</a> |
         <a href=#Usage>Usage</a> |
-        <a href=#Rationale>Rationale</a> |
+        <a href=#Rationale>Rationale</a>
       </small><small>
     </td>
   </tr>
   <tr>
-    <td width=15%><img src=img/icon.png style="width:150px"></td>
+    <td width=15%>
+      <a href=https://github.com/mattvonrocketstein/makefiles>
+        <img src=img/icon.png style="width:150px">
+      </a>
+    </td>
     <td>
-    I'm honestly the type of person who never thought they would have a "makefiles" repository, but here it is.  This is a library of specific, useful, and reusable code for automating stuff with GNU Make.
-
-    If you, like me, are suspicious of Makefile-based automation, jump to the <a href=#rationale>Rationale section</a> of this documentation for some more information/advocacy.  To find out if this might be useful for you, see <a href=#features>Features section</a> to get an overview of what's on tap, then see the <a href=#usage>Usage</a> section to jump in.
+I'm honestly the type of person who never thought they would have a "makefiles" repository, but here it is.  This is a library of specific, useful, and reusable code for automating stuff with GNU Make.
     </td>
   </tr>
 </table>
+
+## About
+
+If you, like me, are suspicious of Makefile-based automation, jump to the <a href=#rationale>Rationale section</a> of this documentation for some more information/advocacy.  To find out if this might be useful for you, see <a href=#features>Features section</a> to get an overview of what's on tap, then see the <a href=#usage>Usage</a> section to jump in.
 
 ## Features
 
