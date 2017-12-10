@@ -24,15 +24,25 @@
 #		ANSIBLE_ROOT = ${SRC_ROOT}/ansible
 #		ANSIBLE_VAULT_PASSWORD_FILE := ${ANSIBLE_ROOT}/.vault_password
 #
+LIB_MAKEFILE = $(abspath $(lastword $(MAKEFILE_LIST)))
+LIB_MAKEFILE := `python -c 'import os,sys;print(os.path.realpath(sys.argv[1]))' ${LIB_MAKEFILE}`
+LIB_ROOT := $(shell dirname ${LIB_MAKEFILE})
+
+# include ${LIB_ROOT}/Makefile.base.mk
+
+vault-base: assert-ANSIBLE_VAULT_PASSWORD_FILE assert-VAULT_CMD
+	$(call _announce_target, $@)
+	$(call _show_env, ANSIBLE)
+	EDITOR=nano ansible-vault $$VAULT_CMD
 
 # target `vault-encrypt-path`:
 #
 # usage example: encrypt a file at a certain path
 #     $ path=/far/bar/baz make encrypt-path
-vault-encrypt-path: assert-path assert-ANSIBLE_VAULT_PASSWORD_FILE
+vault-encrypt-path: assert-path
 	$(call _announce_target, $@)
-	env |grep ANSIBLE
-	ansible-vault encrypt $(value path)
+	VAULT_CMD="encrypt $(value path)" make vault-base
+
 # --vault-password-file=$(value ANSIBLE_VAULT_PASSWORD_FILE)
 encrypt-path: vault-encrypt-path
 encrypt: encrypt-path
@@ -55,8 +65,8 @@ vault-rekey: assert-oldkey assert-newkey assert-path
 #     $ path=/far/bar/baz make decrypt-path
 decrypt: decrypt-path
 decrypt-path: vault-decrypt-path
-vault-decrypt-path: assert-path assert-ANSIBLE_VAULT_PASSWORD_FILE
-	ansible-vault decrypt $$path
+vault-decrypt-path: assert-path
+		VAULT_CMD="decrypt $(value path)" make vault-base
 
 # target `vault-secret`:
 #
@@ -65,5 +75,12 @@ vault-decrypt-path: assert-path assert-ANSIBLE_VAULT_PASSWORD_FILE
 #   $ echo hunter2 | make secret | pbcopy
 vault-secret: assert-ANSIBLE_VAULT_PASSWORD_FILE
 	$(call _announce_target, $@)
-	@ansible-vault encrypt_string -
+	@VAULT_CMD="encrypt_string -" make vault-base
 secret: vault-secret
+vault-unsecret: assert-ANSIBLE_VAULT_PASSWORD_FILE
+	$(call _announce_target, $@)
+	@VAULT_CMD="decrypt -" make vault-base
+unsecret: vault-unsecret
+
+vault-edit: assert-ANSIBLE_VAULT_PASSWORD_FILE assert-path
+		VAULT_CMD="edit $(value path)" make vault-base

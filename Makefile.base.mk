@@ -24,6 +24,31 @@
 #		PLACEHOLDER := ${SRC_ROOT}/.foobar
 #		export ANSIBLE_VAULT_PASSWORD_FILE
 
+define _INFO
+	@printf "$(COLOR_YELLOW)[info]:$(NO_COLOR) (=$1)\n" 1>&2;
+endef
+
+# `_show_env`: A make function for showing the contents of all environment
+# variables.  This information goes to stderr so it can be safely used in
+# make-targets that do stdin/stdout piping.  The argument to this function is
+# passed as an argument for `grep`, thus filtering the output of the `env`.
+#
+#  example usage: (from a make-target, show only .*ANSIBLE.* vars in env)
+#
+#     target_name:
+#      $(call _show_env, ANSIBLE)
+#
+#  example usage: (from a make-target, show .*ANSIBLE.* or .*VIRTUALENV.* vars)
+#
+#     target_name:
+#				$(call _show_env, "\(ANSIBLE\|VIRTUAL\)")
+#
+define _show_env
+	@printf "$(COLOR_YELLOW)[<env>]:$(NO_COLOR)\n" 1>&2;
+	@env|grep $1 1>&2 || true
+	@printf "$(COLOR_YELLOW)[</env>]:$(NO_COLOR)\n"
+endef
+
 define _announce_assert
 	@printf "$(COLOR_YELLOW)[${1}]:$(NO_COLOR) (=$2)\n" 1>&2;
 endef
@@ -31,14 +56,17 @@ define _log
 	@printf "$(COLOR_YELLOW)[log]:$(NO_COLOR)${1}\n" 1>&2;
 endef
 
-# Function & target for implicit guards that assert environment variables.
-# These are usually used by other targets to ensure that environment variables
-# are set before starting.
+# Parametric makefile-target `assert-%`:
+# Makefile-function `_assert_var`:
 #
-# example usage: asserts as Makefile-target prereqs
+# Implicit guards that assert environment variables.  These are usually used by
+# other targets as prerequisite targets to ensure that environment variables are
+# set before starting.
 #
-# 		my-target: assert-USER assert HOST
-#     	echo $${USER}@$${HOST}
+# example usage: (for an existing make-target, set env-var prerequisites)
+#
+#		my-target: assert-USER assert-HOST
+#   	echo $${USER}@$${HOST}
 #
 define _assert_var
 	@if [ "${${*}}" = "" ]; then \
@@ -50,7 +78,9 @@ assert-%:
 	$(call _announce_assert, $@, ${${*}})
 	$(call _assert_var, $*)
 
-# example usage: requires bin in $PATH as a Makefile-target prereq
+# Parametric makefile-target `require-%`:
+#
+# example usage: (for existing make-target, declare command in $PATH as prereq)
 #
 #    my-target: requires-foo_cmd
 #      foo_cmd arg1,arg2
@@ -58,13 +88,26 @@ assert-%:
 require-%:
 	which $*
 
-# boilerplate that causes `make help` and `make list` to
-# publish all the make-target names to stdout.  this mostly
-# works correctly even with usage of `include`
+# Boilerplate and makefile-target `help` and `list`:
+#
+# This causes `make help` and `make list` to publish all the make-target names
+# to stdout.  This mostly works correctly even with usage of makefile-includes.
+#
+# example usage: (from command line)
+#
+#   $ make help
+#   [target]: help
+#   ansible-provision
+#	  ansible-provision-inventory-playbook
+#   ..
+#   ..
 .PHONY: no_targets__ list
 no_targets__:
 list-helper:
-	@sh -c "$(MAKE) -p no_targets__ | awk -F':' '/^[a-zA-Z0-9][^\$$#\/\\t=]*:([^=]|$$)/ {split(\$$1,A,/ /);for(i in A)print A[i]}' | grep -v '__\$$' | sort"
+	@sh -c "\
+	$(MAKE) -p no_targets__ | \
+	awk -F':' '/^[a-zA-Z0-9][^\$$#\/\\t=]*:([^=]|$$)/ {split(\$$1,A,/ /);\
+	for(i in A)print A[i]}' | grep -v '__\$$' | grep -v '\[' | sort"
 help:
 	$(call _announce_target, $@)
 	@make list-helper|grep -v Makefile|grep -v assert-.*
@@ -97,7 +140,7 @@ COL_BLUE=$ESC_SEQ"34;01m"
 COL_MAGENTA=$ESC_SEQ"35;01m"
 COL_CYAN=$ESC_SEQ"36;01m"
 define _announce_target
-	@printf "$(COLOR_GREEN)[target]:$(NO_COLOR) $@\n " 1>&2
+	@printf "$(COLOR_GREEN)[target]:$(NO_COLOR) $@\n" 1>&2
 endef
 
 define _stage

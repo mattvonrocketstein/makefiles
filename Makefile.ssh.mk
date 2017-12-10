@@ -1,3 +1,4 @@
+	
 SSH_OPTS := -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
 
 # Generic rsync method, suitable for synchronizing with a remote codebase
@@ -7,11 +8,11 @@ RSYNC_BASE_CMD := rsync -az --force --delete --progress
 RSYNC_EXCLUDES = --exclude=*.git --exclude=.terraform/*
 rsync: assert-RSYNC_USER assert-RSYNC_KEY assert-RSYNC_DEST assert-RSYNC_SRC assert-RSYNC_HOST
 	$(call _announce_target, $@)
-	eval $$(ssh-agent) && ssh-add ${RSYNC_KEY} && \
+	eval $$(ssh-agent) && ssh-add $(value RSYNC_KEY) && \
 	ssh $$RSYNC_USER@$$RSYNC_HOST mkdir -p `dirname $$RSYNC_DEST` && \
-	${RSYNC_BASE_CMD} \
+	$(value RSYNC_BASE_CMD) \
 		--rsh "ssh -i $$RSYNC_KEY -p 22" \
-		${RSYNC_EXCLUDES} \
+		$(value RSYNC_EXCLUDES) \
 		$$RSYNC_SRC $$RSYNC_USER@$$RSYNC_HOST:$$RSYNC_DEST;
 
 # Generic SSH target.  Don't rename this target to `ssh`, that name is too
@@ -21,13 +22,15 @@ rsync: assert-RSYNC_USER assert-RSYNC_KEY assert-RSYNC_DEST assert-RSYNC_SRC ass
 # file may wish to override
 #
 # usage example: see main Makefile for demo
-set-ssh-cmd:
-	$(call _announce_target, $@)
-	$(eval SSH_CMD ?= $${SSH_CMD:-bash})
-	@echo 'set SSH_CMD: ${SSH_CMD}'
+# set-ssh-cmd:
+# 	$(call _announce_target, $@)
+# 	$(eval SSH_CMD ?= ${SSH_CMD:-bash})
+# 	@echo 'set SSH_CMD: ${SSH_CMD}'
 
-ssh-generic: assert-SSH_USER assert-SSH_HOST assert-SSH_KEY set-ssh-cmd
+ssh-generic: assert-SSH_USER assert-SSH_HOST assert-SSH_KEY
 	$(call _announce_target, $@)
+	# $(eval SSH_CMD ?= $${SSH_CMD:-bash})
+	export SSH_CMD="$${SSH_CMD:-bash}"; \
 	ssh -A -tt $(value SSH_OPTS) \
 	-i $(value SSH_KEY) -l $(value SSH_USER) $(value SSH_HOST) \
 	"$(value SSH_CMD)"
