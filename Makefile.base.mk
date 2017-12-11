@@ -25,7 +25,13 @@
 #		export ANSIBLE_VAULT_PASSWORD_FILE
 
 define _INFO
-	@printf "$(COLOR_YELLOW)[info]:$(NO_COLOR) (=$1)\n" 1>&2;
+	@printf "$(COLOR_YELLOW)`hostname` [info]:$(NO_COLOR) (=$1)\n" 1>&2;
+endef
+define _WARN
+	@printf "$(COLOR_YELLOW)`hostname` [warn]:$(NO_COLOR) (=$1)\n" 1>&2;
+endef
+define _DEBUG
+	@printf "$(COLOR_YELLOW)`hostname` [debug]:$(NO_COLOR) (=$1)\n" 1>&2;
 endef
 
 # `_show_env`: A make function for showing the contents of all environment
@@ -44,16 +50,9 @@ endef
 #				$(call _show_env, "\(ANSIBLE\|VIRTUAL\)")
 #
 define _show_env
-	@printf "$(COLOR_YELLOW)[<env>]:$(NO_COLOR)\n" 1>&2;
+	@printf "$(COLOR_YELLOW)`hostname` [<env>]:$(NO_COLOR)\n" 1>&2;
 	@env|grep $1 1>&2 || true
-	@printf "$(COLOR_YELLOW)[</env>]:$(NO_COLOR)\n"
-endef
-
-define _announce_assert
-	@printf "$(COLOR_YELLOW)[${1}]:$(NO_COLOR) (=$2)\n" 1>&2;
-endef
-define _log
-	@printf "$(COLOR_YELLOW)[log]:$(NO_COLOR)${1}\n" 1>&2;
+	@printf "$(COLOR_YELLOW)`hostname` [</env>]:$(NO_COLOR)\n"
 endef
 
 # Parametric makefile-target `assert-%`:
@@ -68,6 +67,9 @@ endef
 #		my-target: assert-USER assert-HOST
 #   	echo $${USER}@$${HOST}
 #
+define _announce_assert
+	@printf "$(COLOR_YELLOW)(`hostname`) [${1}]:$(NO_COLOR) (=$2)\n" 1>&2;
+endef
 define _assert_var
 	@if [ "${${*}}" = "" ]; then \
 		echo "Environment variable $* not set" 1>&2; \
@@ -140,17 +142,17 @@ COL_BLUE=$ESC_SEQ"34;01m"
 COL_MAGENTA=$ESC_SEQ"35;01m"
 COL_CYAN=$ESC_SEQ"36;01m"
 define _announce_target
-	@printf "$(COLOR_GREEN)[target]:$(NO_COLOR) $@\n" 1>&2
+	@printf "$(COLOR_GREEN)(`hostname`) [target]:$(NO_COLOR) $@\n" 1>&2
 endef
 
 define _stage
-	@printf "$(COLOR_YELLOW)[stage]:$(NO_COLOR) ${1}\n " 1>&2;
+	@printf "$(COLOR_YELLOW)(`hostname`) [stage]:$(NO_COLOR) ${1}\n " 1>&2;
 endef
 
 # example:
 define _fail
 	@INDENTION="  " \
-	printf "$(COLOR_RED)[FAIL]:$(NO_COLOR)\n$${INDENTION}${1}\n" 1>&2;
+	printf "$(COLOR_RED)(`hostname`) [FAIL]:$(NO_COLOR)\n$${INDENTION}${1}\n" 1>&2;
 	exit 1
 endef
 fail:

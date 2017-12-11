@@ -1,22 +1,11 @@
-BASTION_USER = ubuntu
-BASTION_KEY = ~/.ssh/bastion.pem
-
-# Don't use ~ here; Makefile expansion is moody and confusing
-BASTION_TMP_DEPLOY_DIR = /home/ubuntu/code/infracode
-BASTION_VENV_HOME = /home/ubuntu/venv
-export BASTION_USER BASTION_VENV_HOME BASTION_KEY BASTION_TMP_DEPLOY_DIR
 
 ssh-bastion:
 	$(call _announce_target, $@)
-	SSH_KEY=${BASTION_KEY} SSH_USER=${BASTION_USER} \
-	SSH_HOST=${BASTION_IP} \
+	SSH_KEY=$(value BASTION_KEY) SSH_USER=$(value BASTION_USER) \
+	SSH_HOST=$(value BASTION_IP) \
 	${MAKE} ssh-generic
 bastion-ssh: ssh-bastion
 
-set-bastion:
-	$(call _announce_target, $@)
-	$(eval BASTION_IP ?= $${BASTION_IP:-neverSet})
-	@echo set BASTION_IP: ${BASTION_IP}
 
 # Target to help use a jump host, for example to get
 # inside a VPC and then use it's DNS or subnet IPs.
@@ -24,34 +13,41 @@ set-bastion:
 # well on the inside, but the target can be easily copied
 # and modified to use different keys on different subnets
 # or whatever.  Usage example: `host=foo make jump`
-jump:  assert-host set-ssh-cmd set-bastion
+jump:  assert-host set-bastion
 	$(call _announce_target, $@)
-	eval $$(ssh-agent) && ssh-add ${BASTION_KEY} && \
-	SSH_KEY=${BASTION_KEY} \
-	SSH_USER=${BASTION_USER} \
-	SSH_HOST=${BASTION_IP} \
-	SSH_CMD='ssh ${SSH_OPTS} -l ${BASTION_USER} $${host} ' \
-	make -f $(THIS_MAKEFILE) ssh-generic
+	eval $$(ssh-agent) && ssh-add $(value BASTION_KEY) && \
+	SSH_KEY=$(value BASTION_KEY) \
+	SSH_USER=$(value BASTION_USER) \
+	SSH_HOST=$(value BASTION_IP) \
+	SSH_CMD='ssh $(value SSH_OPTS) -l $(value BASTION_USER) $(value host) ' \
+ 	${MAKE} ssh-generic
 bastion-jump: jump
-#; ssh ${SSH_OPTS} -i tmp-key -l ${BASTION_USER} $${host}; rm -f tmp-key
 
 # Bastions and jump-hosts often double as a staging host..
 # for instance Ansible runs faster if it's inside the VPC
 # it's working against, and not doubling up on SSH
 # connections from laptops or VPC-external CI servers.
 RSYNC_EXCLUDES = --exclude=*.git --exclude=.terraform/* --exclude=.DS_Store
-bastion-sync:
+bastion-sync: assert-BASTION_IP
 	$(call _announce_target, $@)
-	SSH_KEY=${BASTION_KEY} SSH_USER=${BASTION_USER} SSH_HOST=${BASTION_IP} \
-	SSH_CMD='mkdir -p ${BASTION_TMP_DEPLOY_DIR}' \
+	SSH_KEY=$(value BASTION_KEY) \
+	SSH_USER=$(value BASTION_USER) \
+	SSH_HOST=$(value BASTION_IP) \
+	SSH_CMD='mkdir -p $(value BASTION_TMP_DEPLOY_DIR)' \
 	make ssh-generic
 
-	SSH_KEY=${BASTION_KEY} SRC=${BASTION_KEY} DEST=/home/ubuntu/.ssh \
-	SSH_USER=${BASTION_USER} SSH_HOST=${BASTION_IP} make scp-generic
+	SSH_KEY=$(value BASTION_KEY) SRC=$(value BASTION_KEY) \
+	DEST=/home/ubuntu/.ssh \
+	SSH_USER=$(value BASTION_USER) \
+	SSH_HOST=$(value BASTION_IP) \
+	make scp-generic
 
-	pushd ${SRC_ROOT} && RSYNC_USER=${BASTION_USER} RSYNC_HOST=${BASTION_IP} \
-	RSYNC_KEY=${BASTION_KEY} RSYNC_SRC=. \
-	RSYNC_DEST=${BASTION_TMP_DEPLOY_DIR} \
+	pushd $(value SRC_ROOT) && \
+	RSYNC_SRC=. \
+	RSYNC_USER=$(value BASTION_USER) \
+	RSYNC_HOST=$(value BASTION_IP) \
+	RSYNC_KEY=$(value BASTION_KEY) \
+	RSYNC_DEST=$(value BASTION_TMP_DEPLOY_DIR) \
 	make rsync
 
 sync-bastion: bastion-sync

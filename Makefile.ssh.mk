@@ -1,4 +1,4 @@
-	
+
 SSH_OPTS := -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
 
 # Generic rsync method, suitable for synchronizing with a remote codebase
@@ -29,8 +29,8 @@ rsync: assert-RSYNC_USER assert-RSYNC_KEY assert-RSYNC_DEST assert-RSYNC_SRC ass
 
 ssh-generic: assert-SSH_USER assert-SSH_HOST assert-SSH_KEY
 	$(call _announce_target, $@)
-	# $(eval SSH_CMD ?= $${SSH_CMD:-bash})
-	export SSH_CMD="$${SSH_CMD:-bash}"; \
+	$(eval SSH_CMD ?= bash)
+	$(call _INFO, '$(value SSH_CMD)')
 	ssh -A -tt $(value SSH_OPTS) \
 	-i $(value SSH_KEY) -l $(value SSH_USER) $(value SSH_HOST) \
 	"$(value SSH_CMD)"
