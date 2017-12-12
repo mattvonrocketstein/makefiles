@@ -13,7 +13,7 @@ bastion-ssh: ssh-bastion
 # well on the inside, but the target can be easily copied
 # and modified to use different keys on different subnets
 # or whatever.  Usage example: `host=foo make jump`
-jump:  assert-host set-bastion
+jump:  assert-host
 	$(call _announce_target, $@)
 	eval $$(ssh-agent) && ssh-add $(value BASTION_KEY) && \
 	SSH_KEY=$(value BASTION_KEY) \
