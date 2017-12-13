@@ -16,6 +16,11 @@
 #
 # VARS: (toplevel overrides, suggested additions for usage as Makefile include)
 
+git-install-precommit: git-assert-no-changes
+
+git-assert-no-changes:
+	git diff-index --quiet HEAD -- || echo "There are uncommitted changes for git, stash or push to proceed" && exit 1
+
 git-update-fork-from-upstream: git-assert-upstream
 	@# placeholder
 	$(call _announce_target, $@)

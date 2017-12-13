@@ -44,3 +44,4 @@ scp-pull: assert-SSH_USER assert-SSH_HOST assert-SSH_KEY
 
 ssh-keygen: assert-KEY
 	ssh-keygen -N '' -f $$KEY
+ssh-keygen: keygen
