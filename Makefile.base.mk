@@ -50,9 +50,9 @@ endef
 #				$(call _show_env, "\(ANSIBLE\|VIRTUAL\)")
 #
 define _show_env
-	@printf "$(COLOR_YELLOW)`hostname` [<env>]:$(NO_COLOR)\n" 1>&2;
+	@printf "$(COLOR_YELLOW)(`hostname`) [<env filter=$1>]:$(NO_COLOR)\n" 1>&2;
 	@env|grep $1 1>&2 || true
-	@printf "$(COLOR_YELLOW)`hostname` [</env>]:$(NO_COLOR)\n"
+	@printf "$(COLOR_YELLOW)(`hostname`) [</env>]:$(NO_COLOR)\n"
 endef
 
 # Parametric makefile-target `assert-%`:

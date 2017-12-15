@@ -2,13 +2,15 @@
 # Makefile.json.mk:
 #   Various targets for transforming JSON and YAML with pipes
 #
-LIB_MAKEFILE = $(abspath $(lastword $(MAKEFILE_LIST)))
-LIB_MAKEFILE := `python -c 'import os,sys;print(os.path.realpath(sys.argv[1]))' ${LIB_MAKEFILE}`
-LIB_ROOT := $(shell dirname ${LIB_MAKEFILE})
 
-include ${LIB_ROOT}/Makefile.base.mk
+# LIB_MAKEFILE = $(abspath $(lastword $(MAKEFILE_LIST)))
+# LIB_MAKEFILE := `python -c 'import os,sys;print(os.path.realpath(sys.argv[1]))' ${LIB_MAKEFILE}`
+# LIB_ROOT := $(shell dirname ${LIB_MAKEFILE})
+#
+# include ${LIB_ROOT}/Makefile.base.mk
 
-# iterated render: use jinja to render json with itself
+# iterated render: use jinja to render json
+# with itself until steady state is reached
 define ITERATED_RENDER
 import os, json, jinja2
 ENV = jinja2.Environment()
@@ -27,9 +29,15 @@ else: print last_t
 endef
 export ITERATED_RENDER
 json-irender: assert-path
+	$(call _announce_target, $@)
 	@echo "$${ITERATED_RENDER}"|python
 
+# Render templated JSON values with JSON context vars
+json-render: assert-context assert-path
+	j2 -f json $$path $$context
+
 json-validate: assert-path
+	$(call _announce_target, $@)
 	@cat $$path | \
 	python -m json.tool >> \
 	/dev/null && exit 0 || \

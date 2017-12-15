@@ -1,72 +1,98 @@
-# usage during inclusion:
+# Makefile.cloudformation.mk:
 #
-#   in including makefile, suggested setup for vars is like this:
+# DESCRIPTION:
+#   A makefile suitable for including in a parent makefile, smoothing various
+#   Cloudformation workflows and usage patterns.  This automation makes
+#   extensive use of [iidy](https://github.com/unbounce/iidy)
 #
-#   CF_KEY_DIR=${SRC_ROOT}/keys
-#   CF_KEY_NAME=jenkins-toposphere
-#   CF_KEY_PATH=${CF_KEY_DIR}/${CF_KEY_NAME}.pem
-#   export CF_KEY_NAME CF_KEY_DIR CF_KEY_PATH
+# REQUIRES: (system tools)
+#   * iidy, awscli
+#
+# DEPENDS: (other makefiles)
+#   * Makefile.base.mk
+#
+# INTERFACE: (primary targets intended for export; see usage examples)
+#   STANDARD TARGETS: (communicate with env-vars or make-vars)
+#     * `placeholder`: placeholder description
+#   PIPED TARGETS: (stdin->stdout)
+#     * `placeholder`: placeholder description
+#     * `placeholder`: placeholder description
+#     * `placeholder`: placeholder description
+#   MAKE-FUNCTIONS:
+#     * `placeholder`: placeholder description
 
-require-iidy:
-	@iidy --version
+DEFAULT_CHANGE_SET_NAME := changeSetOut
 
-cf-key-destroy: assert-CF_KEY_PATH assert-CF_KEY_NAME
-	$(call _announce_target, $@)
-	echo "keypath: $${CF_KEY_PATH}"
-	rm -f "$${CF_KEY_PATH}"
-	aws ec2 delete-key-pair --key-name $${CF_KEY_NAME}
-
-cf-key-create: require-jq assert-CF_KEY_PATH assert-CF_KEY_NAME
-	$(call _announce_target, $@)
-	if [ -f $${CF_KEY_PATH} ]; then \
-		MSG="key $${CF_KEY_PATH} already exists on filesystem\n" \
-		MSG="$${MSG} remove it if you really want to procede" \
-		make fail; \
-	fi
-	aws ec2 create-key-pair --key-name $${CF_KEY_NAME} | \
-	jq -r '.KeyMaterial' > $${CF_KEY_PATH}
+# static-analysis: show usage of `ImportValue`
+cf-describe-imports: require-ack assert-path
+	ack "Fn::ImportValue" $$path
 
 cf-validate: assert-path
 	$(call _announce_target, $@)
 	aws cloudformation validate-template --template-body=file://$$path
 
-cf-events: cf-history
-cf-history: assert-stack
-	iidy watch-stack $$stack
-
 cf-exports:
 	$(call _announce_target, $@)
 	aws cloudformation list-exports
 
-cf-plan: cf-cs
-cf-cs: require-iidy assert-path
-	outfile=cloudformation-tmp-change-set; \
-	iidy create-changeset $$path $${outfile};
+require-iidy:
+	@iidy --version
 
-cf-list:  require-iidy
+##
+# iidy-.* targets.
+##
+iidy-history: iidy-events
+
+iidy-events: require-iidy assert-stack
+	iidy watch-stack $${stack}
+
+iidy-init: assert-argfile
+	ls $(value argfile)
+	$(eval STACK_ARGFILE := $(value argfile))
+	$(eval STACK_NAME := $(shell cat ${STACK_ARGFILE}|shyaml get-value StackName))
+	export STACK_ARGFILE STACK_NAME
+
+iidy-cs: iidy-init
+	iidy create-changeset ${STACK_ARGFILE} ${DEFAULT_CHANGE_SET_NAME}
+
+iidy-create: iidy-init
+	$(call _announce_target, $@)
+	iidy create-stack ${STACK_ARGFILE}
+
+iidy-update: iidy-init
+	$(call _announce_target, $@)
+	iidy update-stack ${STACK_ARGFILE}
+
+iidy-delete: iidy-init
+	$(call _announce_target, $@)
+	iidy delete-stack ${STACK_ARGFILE}
+
+iidy-cs-apply: iidy-init
+	iidy exec-changeset ${STACK_ARGFILE} ${DEFAULT_CHANGE_SET_NAME}
+
+iidy-list-stacks: require-iidy
 	iidy list-stacks
 
-cf-describe: require-iidy assert-stack
+iidy-describe-stack: require-iidy assert-stack
 	iidy describe-stack $$stack
 
-cf-render: require-iidy assert-path
-	iidy render $$path
+##
+# cf-.* targets chaining to iidy for now for improved UX,
+# unless there's a real reason to implement them with aws-cli
+##
 
-# static-analysis:
-cf-show-imports: require-ack assert-path
-	ack "Fn::ImportValue" $$path
-cf-imports: cf-show-imports
+# Operations on change-sets
+cf-cs: iidy-cs
+cf-cs-apply: iidy-cs-apply
+cf-cs-delete: iidy-init
+	$(call _announce_target, $@)
+	aws cloudformation delete-change-set \
+	--change-set-name ${DEFAULT_CHANGE_SET_NAME} \
+	--stack-name ${STACK_NAME} || echo "Could not delete changeset.. maybe does not exist"
 
-# cf-update:
-# 	aws cloudformation update-stack \
-# 	--stack-name cloudtrail-security-stack \
-# 	--template-body file://wonk/security_alerts.yml \
-# 	--parameters '[{"ParameterKey": "Email", "UsePreviousValue": true}, {"ParameterKey": "LogGroupName", "UsePreviousValue": true}]'
-
-
-# cf-create:
-# 	$(call _announce_target, $@)
-# 	AWS_PROFILE=${AWS_PROFILE} aws cloudformation \
-# 	create-stack --template-body \
-# 	file://cf/stack.yml --stack-name jenkins \
-# 	--parameters file://cf/input.yaml
+# CRUD operations
+cf-create: iidy-create
+cf-update: iidy-update
+cf-delete: iidy-delete
+cf-list-stacks: iidy-list-stacks
+cf-describe-stack: iidy-describe-stack
