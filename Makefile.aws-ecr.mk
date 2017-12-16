@@ -17,12 +17,6 @@
 #     * `ecr-push`: placeholder description
 #
 
-# Compute lib-path so we can include `Makefile.base.mk` for assert/announce
-LIB_MAKEFILE = $(abspath $(lastword $(MAKEFILE_LIST)))
-LIB_MAKEFILE := `python -c 'import os,sys;print(os.path.realpath(sys.argv[1]))' ${LIB_MAKEFILE}`
-LIB_ROOT := $(shell dirname ${LIB_MAKEFILE})
-include ${LIB_ROOT}/Makefile.base.mk
-
 # example usage:
 ecr-login: assert-AWS_PROFILE assert-AWS_REGION
 	$(call _announce_target, $@)

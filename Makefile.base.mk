@@ -88,7 +88,7 @@ assert-%:
 #      foo_cmd arg1,arg2
 #
 require-%:
-	which $*
+	@which $*
 
 # Boilerplate and makefile-target `help` and `list`:
 #

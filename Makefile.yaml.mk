@@ -14,9 +14,9 @@
 #
 
 # Render templated YAML with YAML context vars
-yaml-render: assert-context assert-path require-j2
+yaml-render: assert-context assert-path assert-output require-j2
 	$(call _announce_target, $@)
-	@j2 -f yaml $$path $$context
+	@j2 -f yaml $${path} $${context} > $${output}
 
 # example usage: (with pipes, from bash)
 #   $ cat input.yaml | make yaml-to-json > output.json
