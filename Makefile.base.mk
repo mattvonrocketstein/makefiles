@@ -51,7 +51,7 @@ endef
 #
 define _show_env
 	@printf "$(COLOR_YELLOW)(`hostname`) [<env filter=$1>]:$(NO_COLOR)\n" 1>&2;
-	@env|grep $1 1>&2 || true
+	@env | grep $1 | sed 's/^/  /' 1>&2 || true
 	@printf "$(COLOR_YELLOW)(`hostname`) [</env>]:$(NO_COLOR)\n"
 endef
 
@@ -72,13 +72,21 @@ define _announce_assert
 endef
 define _assert_var
 	@if [ "${${*}}" = "" ]; then \
-		echo "Environment variable $* not set" 1>&2; \
+		echo "Environment variable $* is not set" 1>&2; \
+		exit 1; \
+	fi
+endef
+define _assertnot_var
+	@if [ "${${*}}" != "" ]; then \
+		echo "Environment variable $* is set, and shouldn't be!" 1>&2; \
 		exit 1; \
 	fi
 endef
 assert-%:
 	$(call _announce_assert, $@, ${${*}})
 	$(call _assert_var, $*)
+assertnot-%:
+	$(call _assertnot_var, $*)
 
 # Parametric makefile-target `require-%`:
 #
@@ -151,7 +159,7 @@ endef
 
 # example:
 define _fail
-	@INDENTION="  " \
+	@INDENTION="  "; \
 	printf "$(COLOR_RED)(`hostname`) [FAIL]:$(NO_COLOR)\n$${INDENTION}${1}\n" 1>&2;
 	exit 1
 endef
