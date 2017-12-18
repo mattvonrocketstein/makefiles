@@ -37,4 +37,4 @@ docker-remote-shell: assert-SERVICE assert-COMPOSE_FILE assert-SERVICE_USER
 	$(eval DOCKER_PS_CMD=docker-compose -f $(value COMPOSE_FILE) ps -q $(value SERVICE))
 	@# yep, need three \ to escape here
 	SSH_CMD="docker exec -it -u $(value SERVICE_USER) \\\`${DOCKER_PS_CMD}\\\` $(value SERVICE_SHELL)" \
-	make ssh
+	make ssh-generic

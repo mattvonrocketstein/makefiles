@@ -19,7 +19,7 @@ jump:  assert-host
 	SSH_KEY=$(value BASTION_KEY) \
 	SSH_USER=$(value BASTION_USER) \
 	SSH_HOST=$(value BASTION_IP) \
-	SSH_CMD='ssh $(value SSH_OPTS) -l $(value BASTION_USER) $(value host) ' \
+	SSH_CMD='ssh $(value SSH_OPTS) -l $(value BASTION_USER) $(value host)' \
  	${MAKE} ssh-generic
 bastion-jump: jump
 
