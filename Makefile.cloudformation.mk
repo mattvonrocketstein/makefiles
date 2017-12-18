@@ -63,9 +63,10 @@ iidy-update: iidy-init
 	$(call _announce_target, $@)
 	iidy update-stack ${STACK_ARGFILE}
 
-iidy-delete: iidy-init
+iidy-delete: iidy-init require-shyaml
 	$(call _announce_target, $@)
-	iidy delete-stack ${STACK_ARGFILE}
+	stack=`cat ${STACK_ARGFILE}|shyaml get-value StackName` \
+	make cf-delete-stack
 
 iidy-cs-apply: iidy-init
 	iidy exec-changeset ${STACK_ARGFILE} ${DEFAULT_CHANGE_SET_NAME}
@@ -93,6 +94,7 @@ cf-cs-delete: iidy-init
 # CRUD operations
 cf-create: iidy-create
 cf-update: iidy-update
-cf-delete: iidy-delete
+cf-delete-stack: assert-stack
+	aws cloudformation delete-stack --stack-name $(value stack)
 cf-list-stacks: iidy-list-stacks
 cf-describe-stack: iidy-describe-stack

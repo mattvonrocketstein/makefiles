@@ -36,9 +36,25 @@ vault-base: assert-ANSIBLE_VAULT_PASSWORD_FILE assert-VAULT_CMD
 #     $ path=/far/bar/baz make encrypt-path
 vault-encrypt-path: assert-path
 	$(call _announce_target, $@)
-	@VAULT_CMD="encrypt $(value path)" make vault-base
+	@cat $(value path) | \
+	head -n1 | grep --no-messages ANSIBLE_VAULT > /dev/null || \
+	VAULT_CMD="encrypt $(value path)" make vault-base
 encrypt-path: vault-encrypt-path
 encrypt: encrypt-path
+
+
+# target `vault-decrypt-path`:
+# example: decrypt a file at a certain path
+#     $ path=/far/bar/baz make decrypt-path
+decrypt: decrypt-path
+decrypt-path: vault-decrypt-path
+vault-decrypt-path: assert-path
+	$(call _announce_target, $@)
+	@cat $(value path) | \
+	head -n1 | grep --no-messages ANSIBLE_VAULT > /dev/null && \
+	VAULT_CMD="decrypt $(value path)" make vault-base || \
+	echo "$${path} is not encrypted"
+
 
 # target `vault-rekey`:
 # usage example: rekey one file given $oldkey and $newkey
@@ -50,15 +66,6 @@ vault-rekey: assert-oldkey assert-newkey assert-path
 		--new-vault-password-file=$$newkey \
 		--vault-password-file=$$oldkey \
 		$$path
-
-# target `vault-decrypt-path`:
-# example: decrypt a file at a certain path
-#     $ path=/far/bar/baz make decrypt-path
-decrypt: decrypt-path
-decrypt-path: vault-decrypt-path
-vault-decrypt-path: assert-path
-	$(call _announce_target, $@)
-	@VAULT_CMD="decrypt $(value path)" make vault-base
 
 # target `vault-secret`:
 #
