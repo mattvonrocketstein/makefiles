@@ -25,13 +25,13 @@
 #		export ANSIBLE_VAULT_PASSWORD_FILE
 
 define _INFO
-	@printf "$(COLOR_YELLOW)`hostname` [info]:$(NO_COLOR) (=$1)\n" 1>&2;
+	@printf "$(COLOR_YELLOW)(`hostname`) [$@]:$(NO_COLOR) INFO $1\n" 1>&2;
 endef
 define _WARN
-	@printf "$(COLOR_YELLOW)`hostname` [warn]:$(NO_COLOR) (=$1)\n" 1>&2;
+	@printf "$(COLOR_RED)(`hostname`) [$@]:$(NO_COLOR) WARN $1\n" 1>&2;
 endef
 define _DEBUG
-	@printf "$(COLOR_YELLOW)`hostname` [debug]:$(NO_COLOR) (=$1)\n" 1>&2;
+	@printf "$(COLOR_RED)(`hostname`) [$@]:$(NO_COLOR) DEBUG $1\n" 1>&2;
 endef
 
 # `_show_env`: A make function for showing the contents of all environment

@@ -19,37 +19,30 @@
 #   PIPED TARGETS: (stdin->stdout)
 #     * placeholder
 #
-# VARS: (toplevel overrides, suggested additions for usage as Makefile include)
-#		ANSIBLE_ROOT = ${SRC_ROOT}/ansible
-#		ANSIBLE_ROOT = ${SRC_ROOT}/ansible
-#		ANSIBLE_ROLES_PATH = ${ANSIBLE_ROOT}/roles
-#		ANSIBLE_PRIVATE_KEY = ${ANSIBLE_ROOT}/key.pem
-#		ANSIBLE_CONFIG = ${ANSIBLE_ROOT}/ansible.cfg
-#		ANSIBLE_VAULT_PASSWORD_FILE := ${ANSIBLE_ROOT}/.vault_password
-#		export ANSIBLE_ROOT ANSIBLE_PRIVATE_KEY ANSIBLE_CONFIG ANSIBLE_ROLES_PATH ANSIBLE_VAULT_PASSWORD_FILE
 
 # A target to ensure fail-fast if ansible is not present
 require-ansible:
 	@ansible --version
 
-# example usage:
-#  $ inventory=./inventory.yaml playbook=bar/baz.yml make ansible-provision-inventory-playbook
-ansible-provision-inventory-playbook: assert-inventory assert-playbook
-	$(call _announce_target, $@)
-	ansible-playbook --user=$(value ANSIBLE_USER) \
-	--vault-password-file=$(value ANSIBLE_VAULT_PASSWORD_FILE) \
-	--private-key $(value ANSIBLE_PRIVATE_KEY) \
-	--inventory $(value inventory) $(value playbook)
-
 ansible-roles:
 	$(call _announce_target, $@)
 	ansible-galaxy install -r $${path:-${ANSIBLE_ROOT}/requirements.yml}
 
-# A target for average use-case where playbook is specified but inventory is
-# determined by a single host argument
-#
-# example usage:
-#  $ inventory=./inventory.yaml playbook=bar/baz.yml make ansible-provision
-ansible-provision: assert-playbook assert-host
+ansible-provision: assert-host assert-playbook
 	$(call _announce_target, $@)
-	playbook=$${playbook} inventory="$${host}," make ansible-provision-inventory-playbook
+	@# dump env vars for debugging
+	$(call _show_env, "\(ANSIBLE\|VIRTUAL\)")
+	@# show ansible information for debugging
+	ansible --version
+	@# run playbook against host
+	host=$(value host) playbook=$(value playbook) \
+	ansible-playbook \
+	--user $(value ANSIBLE_USER) \
+	--vault-password-file=$(value ANSIBLE_VAULT_PASSWORD_FILE) \
+	--private-key $(value ANSIBLE_KEY) \
+	--inventory $(value host), \
+	-e @$(value ANSIBLE_VARS_SECRET) \
+	-e @$(value ANSIBLE_VARS_TF) \
+	-e @$(value ANSIBLE_VARS_JENKINS) \
+	-e @$(value ANSIBLE_VARS_BASE) $(value extra_ansible_args) \
+	${ANSIBLE_ROOT}/$(value playbook).yml
