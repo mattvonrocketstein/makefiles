@@ -8,14 +8,14 @@ TERRAFORM_EXEC ?= terraform
 
 # A target to ensure fail-fast if terraform is not present
 require-tf:
-	${TERRAFORM_EXEC} --version &> /dev/null
+	@${TERRAFORM_EXEC} --version &> /dev/null
 
 # Target to extract a single value from terraform output.
 # Output is quiet so it can be used directly with interpolation
 #
 # example usage (using output as argument):
 #    ssh `var=host_ip make tf-get-output`
-tf-get-output: assert-var
+tf-get-output: assert-var require-jq
 	$(call _announce_target, $@)
 	@echo `${TERRAFORM_EXEC} output -json 2>/dev/null | jq -r .$$var.value`
 

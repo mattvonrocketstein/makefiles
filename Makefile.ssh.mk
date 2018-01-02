@@ -11,7 +11,7 @@ rsync: assert-RSYNC_USER assert-RSYNC_KEY assert-RSYNC_DEST assert-RSYNC_SRC ass
 	eval $$(ssh-agent) && ssh-add $(value RSYNC_KEY) && \
 	ssh $$RSYNC_USER@$$RSYNC_HOST mkdir -p `dirname $$RSYNC_DEST` && \
 	$(value RSYNC_BASE_CMD) \
-		--rsh "ssh -i $$RSYNC_KEY -p 22" \
+		--rsh "ssh ${SSH_OPTS} -i $$RSYNC_KEY -p 22" \
 		$(value RSYNC_EXCLUDES) \
 		$$RSYNC_SRC $$RSYNC_USER@$$RSYNC_HOST:$$RSYNC_DEST;
 
