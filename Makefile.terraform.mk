@@ -3,13 +3,21 @@
 #
 # Usage for this file as an include follow.
 # Suggested variable-overrides in your toplevel Makefile:
-#
-#   TERRAFORM_EXEC := terraform
-#
+
+TERRAFORM_EXEC ?= terraform
 
 # A target to ensure fail-fast if terraform is not present
 require-tf:
 	${TERRAFORM_EXEC} --version &> /dev/null
+
+# Target to extract a single value from terraform output.
+# Output is quiet so it can be used directly with interpolation
+#
+# example usage (using output as argument):
+#    ssh `var=host_ip make tf-get-output`
+tf-get-output: assert-var
+	$(call _announce_target, $@)
+	@echo `${TERRAFORM_EXEC} output -json 2>/dev/null | jq -r .$$var.value`
 
 # Target for simple proxy to terraform, "refresh" subcommand
 tf-refresh:
@@ -27,6 +35,7 @@ tf-set-tf-target:
 #
 # example usage (plan everything):
 #    make tf-plan
+#
 # example usage (plan with target):
 #    target=module.mymodule make tf-plan
 tf-plan: tf-set-tf-target
@@ -37,6 +46,7 @@ tf-plan: tf-set-tf-target
 #
 # example usage (apply everything):
 #    make tf-apply
+#
 # example usage (apply with target):
 #    target=module.mymodule make tf-apply
 tf-apply: tf-set-tf-target
@@ -67,6 +77,6 @@ tf-taint: tf-set-tf-target
 # Target to create a png graph of terraform resources.
 # Requires dot.  TODO: see what can be done here
 # to make a graph that ISNT so huge it's worthless
-tf-graph:
+tf-graph: require-dot
 	$(call _announce_target, $@)
 	${TERRAFORM_EXEC} graph | dot -Tpng > graph.png

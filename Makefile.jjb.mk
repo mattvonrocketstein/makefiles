@@ -32,10 +32,12 @@ JJB_JOB_TEMPLATE_DIR ?= ${SRC_ROOT}/jenkins-jobs
 JJB_JOB_RENDER_DIR ?= ${SRC_ROOT}/.jjb-render
 JJB_JOB_RENDER_OUT ?= ${JJB_JOB_RENDER_DIR}/rendered-jobs.yml
 
-jjb-render-one: assert-path assert-tmp_json
+jjb-render-one: assert-path assert-tmp_json assert-render_out
 	@ls $$path > /dev/null
-	@printf '\n\n### begin `basename $$path`\n\n' >> ${JJB_JOB_RENDER_OUT}
-	j2 -f json $$path $$tmp_json >> ${JJB_JOB_RENDER_OUT}
+	j2 -f json $$path $$tmp_json >> $$render_out
+
+jjb-render-one-inplace: jjb-render-one
+	mv $$render_out $$path
 
 jjb-render: require-j2 assert-YAML_TEMPLATE_VAR_FILES
 	$(call _announce_target, $@)
@@ -67,8 +69,10 @@ jjb-render: require-j2 assert-YAML_TEMPLATE_VAR_FILES
 	@# jenkins-job-builder can use the YAML.
 	tree $(value JJB_JOB_RENDER_DIR)
 	@$(call _INFO, "rendering-stage-2")
+	find $(value JJB_JOB_RENDER_DIR)/*.groovy -type f | tr ' ' '\n' | \
+	xargs -I {} bash -c 'path={} render_out={}.tmp tmp_json=${TMP_JSON}.rendered make jjb-render-one-inplace; '
 	find $(value JJB_JOB_RENDER_DIR)/*.yml -type f | tr ' ' '\n' | \
-	xargs -I {} bash -c 'path={} tmp_json=${TMP_JSON}.rendered make jjb-render-one'
+	xargs -I {} bash -c 'path={} render_out=${JJB_JOB_RENDER_OUT} tmp_json=${TMP_JSON}.rendered make jjb-render-one'
 	$(call _INFO, 'rendered jobs successfully')
 	tree $(value JJB_JOB_RENDER_DIR)
 	$(call _INFO, '${JJB_JOB_RENDER_OUT}')
