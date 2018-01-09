@@ -98,8 +98,6 @@ assert-%:
 assertnot-%:
 	$(call _assertnot_var, $*)
 
-# Parametric makefile-target `require-%`:
-#
 # example usage: (for existing make-target, declare command in $PATH as prereq)
 #
 #    my-target: requires-foo_cmd
