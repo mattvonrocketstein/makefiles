@@ -18,6 +18,15 @@ yaml-render: assert-context assert-path assert-output require-j2
 	$(call _announce_target, $@)
 	@j2 -f yaml $${path} $${context} > $${output}
 
+yaml-concat: assert-input assert-output
+	if [ -e "$$output" ]; then \
+		rm $$output; \
+	fi
+	if [ -d "$$input" ]; then \
+		find $$input/*.yml -type f | \
+		xargs -I {} bash -ex -c 'cat {} | tee -a $$output'; \
+	fi
+
 # example usage: (invoked via shell, with pipes)
 #   $ cat input.yaml | make yaml-to-json > output.json
 yaml-to-json:

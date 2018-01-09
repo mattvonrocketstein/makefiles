@@ -39,7 +39,17 @@ jjb-render-one: assert-path assert-tmp_json assert-render_out
 jjb-render-one-inplace: jjb-render-one
 	mv $$render_out $$path
 
-jjb-render: require-j2 assert-YAML_TEMPLATE_VAR_FILES
+jjb-render-concat:
+	$(call _announce_target, $@)
+	input=${JJB_JOB_TEMPLATE_DIR} \
+	output=${JJB_JOB_RENDER_OUT} \
+	make yaml-concat
+
+jjb-render:
+	$(call _announce_target, $@)
+	make ${JJB_RENDER_TARGET}
+
+jjb-render-complex: require-j2 assert-YAML_TEMPLATE_VAR_FILES
 	$(call _announce_target, $@)
 	$(eval TMP_YML = $(value JJB_JOB_RENDER_DIR)/.tmp.yml)
 	$(eval TMP_JSON = $(value JJB_JOB_RENDER_DIR)/.tmp.json)
