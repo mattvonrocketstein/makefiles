@@ -14,11 +14,21 @@
 #
 # INTERFACE: (primary targets intended for export; see usage examples)
 #   STANDARD TARGETS: (communicate with env-vars or make-vars)
-#     * `placeholder`: placeholder description
+#
+#     * `require-%`:for usage as pre-requisite target, with
+#				the provided parameter.  this guard is used to assert
+#       an executable exists in $PATH before entering another
+#       target
+#
+#     * `assert-%`: for usage as pre-requisite target, with
+#				the provided parameter.  this guard is used to assert
+#       an environment variable before entering another target
+#
 #   PIPED TARGETS: (stdin->stdout)
 #     * `placeholder`: placeholder description
 #   MAKE-FUNCTIONS:
-#     * `placeholder`: placeholder description
+#     * `_show_env`: placeholder description
+#     * `_INFO`, `_DEBUG`,`_WARN`: standardizing loggers
 #
 # VARS: (toplevel overrides, suggested additions for usage as Makefile include)
 #		PLACEHOLDER := ${SRC_ROOT}/.foobar
