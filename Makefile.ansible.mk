@@ -20,9 +20,9 @@
 #     * placeholder
 #
 
-# A target to ensure fail-fast if ansible is not present
 require-ansible:
-	@ansible --version
+	@# A quiet target to ensure fail-fast if ansible is not present
+	ansible --version &> /dev/null
 
 ansible-roles:
 	$(call _announce_target, $@)
@@ -46,3 +46,31 @@ ansible-provision: assert-host assert-playbook
 	-e @$(value ANSIBLE_VARS_JENKINS) \
 	-e @$(value ANSIBLE_VARS_BASE) $(value extra_ansible_args) \
 	${ANSIBLE_ROOT}/$(value playbook).yml
+
+ansible-adhoc-group: assert-group require-ansible require-shyaml
+	$(call _announce_target, $@)
+	$(eval host:= $(shell group=$$group make ansible-get-group))
+	ANSIBLE_USER=pi host=$(value host) \
+	make ansible-adhoc-host
+
+ansible-adhoc-host: assert-host
+	$(call _announce_target, $@)
+	ansible all -i $(value host), \
+		--user=$(value ANSIBLE_USER) \
+		--private-key=$(value ANSIBLE_PRIVATE_KEY) \
+		-m $$module $$extra_ansible_args
+
+ansible-adhoc:
+	@# Run adhoc ansible against either a host
+	@# or a group, using the rest of the current
+	@# environment's settings for keys, users, etc
+	$(call _announce_target, $@)
+	@if [ "$$host" = "" ]; then \
+		make ansible-adhoc-group; \
+		exit $$?; \
+	else \
+		make ansible-adhoc-host; \
+	fi
+ansible-ping:
+	@# Helper for verifying connectivity with ansible's ping.
+	module=ping make ansible-adhoc

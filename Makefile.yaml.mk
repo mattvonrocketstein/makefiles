@@ -13,6 +13,10 @@
 #   * Makefile.base.mk
 #
 
+require-shyaml:
+	@# A target to ensure fail-fast if shyaml is not present.
+	shyaml -h &> /dev/null
+
 # Render templated YAML with YAML context vars
 yaml-render: assert-context assert-path assert-output require-j2
 	$(call _announce_target, $@)
