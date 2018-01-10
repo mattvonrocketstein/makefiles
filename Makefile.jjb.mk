@@ -32,13 +32,34 @@ JJB_JOB_TEMPLATE_DIR ?= ${SRC_ROOT}/jenkins-jobs
 JJB_JOB_RENDER_DIR ?= ${SRC_ROOT}/.jjb-render
 JJB_JOB_RENDER_OUT ?= ${JJB_JOB_RENDER_DIR}/rendered-jobs.yml
 
-jjb-render-one: assert-path assert-tmp_json assert-render_out
-	@ls $$path > /dev/null
-	j2 -f json $$path $$tmp_json >> $$render_out
+# assert jenkins-jobs is in $PATH
+require-jjb:
+	@jenkins-jobs --version
 
-jjb-render-one-inplace: jjb-render-one
-	mv $$render_out $$path
+# validate whatever yaml we ultimately rendered
+# (see default rendering options below, or make your own)
+jjb-validate: require-jjb jjb-render jjb-decrypt-config
+	$(call _announce_target, $@)
+	jenkins-jobs --conf ${JJB_INI} test ${JJB_JOB_RENDER_OUT}
 
+# this target assumes that ${JJB_INI} might be using
+# encryption based on Makefile.ansible-vault.mk.
+# if your ${JJB_INI} isn't encrypted or is .gitignored,
+# or if you don't want a depedency on ansible,
+# override this target to use set it as NOOP
+jjb-decrypt-config:
+	@ls ${JJB_INI}
+	path=${JJB_INI} make decrypt || true
+
+# sync whatever yaml we've validated & rendered
+jjb-sync: jjb-validate jjb-decrypt-config
+	$(call _announce_target, $@)
+	jenkins-jobs -l DEBUG \
+	--conf ${JJB_INI} update ${JJB_JOB_RENDER_OUT}
+
+# simple renderer, just concatenates yaml
+# files which are stored flatly, with no
+# nested subdirs, inside a folder $input
 jjb-render-concat:
 	$(call _announce_target, $@)
 	input=${JJB_JOB_TEMPLATE_DIR} \
@@ -49,6 +70,8 @@ jjb-render:
 	$(call _announce_target, $@)
 	make ${JJB_RENDER_TARGET}
 
+# complex renderer for JJB yaml which is itself
+# templated, say with k/v's from ${ANSIBLE_ROOT}/vars.yml
 jjb-render-complex: require-j2 assert-YAML_TEMPLATE_VAR_FILES
 	$(call _announce_target, $@)
 	$(eval TMP_YML = $(value JJB_JOB_RENDER_DIR)/.tmp.yml)
@@ -86,17 +109,11 @@ jjb-render-complex: require-j2 assert-YAML_TEMPLATE_VAR_FILES
 	$(call _INFO, 'rendered jobs successfully')
 	tree $(value JJB_JOB_RENDER_DIR)
 	$(call _INFO, '${JJB_JOB_RENDER_OUT}')
+# helper for jjb-render-complex
+jjb-render-one: assert-path assert-tmp_json assert-render_out
+	@ls $$path > /dev/null
+	j2 -f json $$path $$tmp_json >> $$render_out
 
-require-jjb:
-	@jenkins-jobs --version
-
-jjb-validate: require-jjb jjb-render
-	$(call _announce_target, $@)
-	path=${JJB_INI} make decrypt
-	jenkins-jobs --conf ${JJB_INI} test ${JJB_JOB_RENDER_OUT}
-
-jjb-sync: jjb-validate
-	$(call _announce_target, $@)
-	@ls ${JJB_INI}
-	path=${JJB_INI} make decrypt || true
-	jenkins-jobs --conf ${JJB_INI} update ${JJB_JOB_RENDER_OUT}
+# helper for jjb-render-complex
+jjb-render-one-inplace: jjb-render-one
+	mv $$render_out $$path
