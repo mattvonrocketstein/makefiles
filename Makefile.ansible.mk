@@ -13,20 +13,30 @@
 #   * placeholder
 #
 # INTERFACE: (primary targets intended for export; see usage examples)
+#
 #   STANDARD TARGETS: (communicate with env-vars or make-vars)
-#     * `require-ansible`: fail-fast if ansible is not present
-#     * `ansible-provision-inventory-playbook`
+#     * `require-ansible`: fail-fast if ansible is not present in $PATH
+#     * `ansible-requirements`: refresh ansible galaxy roles ${ANSIBLE_GALAXY_REQUIREMENTS}
+#     * `ansible-clean`: remove file cruft (like .retry's)
+#
 #   PIPED TARGETS: (stdin->stdout)
 #     * placeholder
 #
+
+ANSIBLE_GALAXY_REQUIREMENTS?=${ANSIBLE_ROOT}/galaxy-requirements.yml
 
 require-ansible:
 	@# A quiet target to ensure fail-fast if ansible is not present
 	ansible --version &> /dev/null
 
-ansible-roles:
+ansible-requirements:
 	$(call _announce_target, $@)
-	ansible-galaxy install -r $${path:-${ANSIBLE_ROOT}/requirements.yml}
+	ansible-galaxy install -r ${ANSIBLE_GALAXY_REQUIREMENTS}
+
+ansible-clean:
+	find ${SRC_ROOT} -type f | \
+	grep [.]retry$$ | \
+	xargs rm
 
 ansible-provision: assert-host assert-playbook
 	$(call _announce_target, $@)
@@ -71,6 +81,7 @@ ansible-adhoc:
 	else \
 		make ansible-adhoc-host; \
 	fi
+
 ansible-ping:
 	@# Helper for verifying connectivity with ansible's ping.
 	module=ping make ansible-adhoc
