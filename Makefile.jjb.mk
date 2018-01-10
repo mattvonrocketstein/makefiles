@@ -40,7 +40,7 @@ require-jjb:
 # (see default rendering options below, or make your own)
 jjb-validate: require-jjb jjb-render jjb-decrypt-config
 	$(call _announce_target, $@)
-	jenkins-jobs --conf ${JJB_INI} test ${JJB_JOB_RENDER_OUT}
+	jenkins-jobs -l DEBUG --conf ${JJB_INI} test ${JJB_JOB_RENDER_OUT}
 
 # this target assumes that ${JJB_INI} might be using
 # encryption based on Makefile.ansible-vault.mk.

@@ -5,22 +5,25 @@
 #   common workflows with docker and docker-compose, on local or remote hosts
 #
 # REQUIRES: (system tools)
-#	  * docker-compose
+#	  * docker, docker-compose
 #
 # DEPENDS: (other makefiles and make-targets)
-#   * makefiles/Makefile.ssh.mk
-#   * toplevel `ssh` target
+#   * Makefile.base.mk
+#   * Makefile.ssh.mk (targets: ssh-generic)
 #
 # INTERFACE: (primary targets intended for export; see usage examples)
+#
 #   STANDARD TARGETS: (communicate with env-vars or make-vars)
 #     * `docker-remote-shell`:
+#     * `docker-lint`:
+#
 #   PIPED TARGETS: (stdin->stdout)
-#     * `vault-secret`: encrypt secret on stdin to stdout
+#     * `placeholder`: placeholder
 #
-# VARS: (toplevel overrides, suggested additions for usage as Makefile include)
-#		ANSIBLE_ROOT = ${SRC_ROOT}/ansible
-#		ANSIBLE_VAULT_PASSWORD_FILE := ${ANSIBLE_ROOT}/.vault_password
-#
+
+docker-lint:
+	$(call _announce_target, $@)
+	docker run --rm -i hadolint/hadolint < Dockerfile
 
 # target `docker-remote-shell`:
 #   This target defers to the `ssh` target as far as setting up private keys,
