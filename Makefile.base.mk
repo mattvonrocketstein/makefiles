@@ -121,15 +121,19 @@ require-%:
 #   ..
 .PHONY: no_targets__ list
 no_targets__:
-list-helper:
+_help-helper:
 	@sh -c "\
 	$(MAKE) -p no_targets__ | \
 	awk -F':' '/^[a-zA-Z0-9][^\$$#\/\\t=]*:([^=]|$$)/ {split(\$$1,A,/ /);\
 	for(i in A)print A[i]}' | grep -v '__\$$' | grep -v '\[' | sort"
 help:
 	$(call _announce_target, $@)
-	@make list-helper|grep -v Makefile|grep -v assert-.*
-list: help
+	@make _help-helper \
+	| python -c"\
+	from __future__ import print_function; import sys; \
+	[print(x.strip()) for x in sys.stdin.readlines() \
+	if x.strip() not in 'Makefile list fail i in not if else for'.split() \
+	and not any([x.startswith(y) for y in 'assert range('.split()])]"
 
 # Helpers and data for user output things
 #
@@ -137,6 +141,18 @@ list: help
 #
 #    my-target:
 #    	  $(call _announce_target, $@)
+#
+# class bcolors:
+#     HEADER = '\033[95m'
+#     OKBLUE = '\033[94m'
+#     OKGREEN = '\033[92m'
+#     WARNING = '\033[93m'
+#     FAIL = '\033[91m'
+#     ENDC = '\033[0m'
+#     BOLD = '\033[1m'
+#     UNDERLINE = '\033[4m'
+# To use code like this, you can do something like
+# print bcolors.WARNING + "\033[93mWarning:\033[0m" + bcolors.ENDC
 #
 NO_COLOR:=\x1b[0m
 COLOR_GREEN=\x1b[32;01m
