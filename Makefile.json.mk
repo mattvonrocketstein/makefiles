@@ -66,10 +66,11 @@ json-wrapper:
 	@make assert-wrapper > /dev/null
 	@python -c "import os, sys, json; print json.dumps({ os.environ['wrapper']: json.loads(sys.stdin.read())})"
 
+# Target for use with pipes.
+#
 # usage example:
 #  $ echo '{"a": "a", "b": null}' | make json-filter-keys-with-null-value
 #  {"a": "a"}
 json-filter-keys-with-null-value:
-	@# placeholder
 	$(call _announce_target, $@)
 	@cat /dev/stdin | jq 'del(.[] | nulls)'
