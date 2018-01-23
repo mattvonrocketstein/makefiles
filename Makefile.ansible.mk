@@ -18,7 +18,7 @@
 #     * `require-ansible`: fail-fast if ansible is not present in $PATH
 #     * `ansible-requirements`: refresh ansible galaxy roles ${ANSIBLE_GALAXY_REQUIREMENTS}
 #     * `ansible-clean`: remove file cruft (like .retry's)
-#
+#			* `ansible-inventory-get`: retrieve merged ansible host/group vars from CLI
 #   PIPED TARGETS: (stdin->stdout)
 #     * placeholder
 #
@@ -28,6 +28,23 @@ ANSIBLE_GALAXY_REQUIREMENTS?=${ANSIBLE_ROOT}/galaxy-requirements.yml
 require-ansible:
 	@# A quiet target to ensure fail-fast if ansible is not present
 	ansible --version &> /dev/null
+
+ansible-inventory-get: assert-host assert-var
+	$(call _announce_target, $@)
+	@export TMP=`mktemp` && \
+	ansible localhost \
+	--connection local -i ${ANSIBLE_INVENTORY} \
+	--module-name copy --args "\
+	content={{hostvars['$$host']}} dest=$${TMP}" \
+	> /dev/null && \
+	cat ${TMP} | jq -r .$$var
+
+ansible-graph: assert-host require-ansible-inventory-grapher
+	$(call _announce_target, $@)
+	ansible-inventory-grapher \
+	-i ${ANSIBLE_INVENTORY} -q $$host | \
+	dot -Tpng  > tmp.png
+	open tmp.png
 
 ansible-requirements:
 	$(call _announce_target, $@)
