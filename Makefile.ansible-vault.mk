@@ -67,7 +67,7 @@ vault-decrypt-path: assert-path
 	@cat $(value path) | \
 	head -n1 | grep --no-messages ANSIBLE_VAULT > /dev/null && \
 	VAULT_CMD="decrypt $(value path)" make vault-base || \
-	echo "$${path} is not encrypted"
+	$(call _INFO, '$${path} is not encrypted')
 
 
 # target `vault-rekey`:
