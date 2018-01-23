@@ -37,7 +37,7 @@ ansible-inventory-get: assert-host assert-var
 	--module-name copy --args "\
 	content={{hostvars['$$host']}} dest=$${TMP}" \
 	> /dev/null && \
-	cat ${TMP} | jq -r .$$var
+	cat $${TMP} | jq -r .$$var
 
 ansible-graph: assert-host require-ansible-inventory-grapher
 	$(call _announce_target, $@)
