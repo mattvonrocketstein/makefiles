@@ -28,7 +28,10 @@ yaml-concat: assert-input assert-output
 	fi
 	if [ -d "$$input" ]; then \
 		find $$input/*.yml -type f | \
-		xargs -I {} bash -ex -c 'cat {} | tee -a $$output'; \
+		xargs -I {} bash -ex -c '\
+		cat {} \
+		| tee -a $$output \
+		> $${stdout:-/dev/stdout}'; \
 	fi
 
 # example usage: (invoked via shell, with pipes)
