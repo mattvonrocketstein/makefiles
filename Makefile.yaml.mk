@@ -44,8 +44,14 @@ yaml-to-json:
 
 # example usage: (invoked via shell, with pipes)
 #   $ cat my.yaml | make yaml-validate
-yaml-validate: assert-path
+yaml-validate-pipe:
 	$(call _announce_target, $@)
 	@python -c 'import sys, yaml; yaml.load(sys.stdin)'
+
+yaml-validate-file: assert-path
+	$(call _announce_target, $@)
+	cat $$path | make yaml-validate-pipe
+
+yaml-validate: yaml-validate-file
 
 yaml-validate-dir:
