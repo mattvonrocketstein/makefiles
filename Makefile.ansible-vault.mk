@@ -102,6 +102,6 @@ VAULT_EDITOR:=nano
 vault-edit: assert-ANSIBLE_VAULT_PASSWORD_FILE assert-path
 	$(call _announce_target, $@)
 	@# atom breaks otherwise, at least with my settings
-	EDITOR = ${VAULT_EDITOR} \
+	EDITOR=${VAULT_EDITOR} \
 	VAULT_CMD="edit $(value path)" \
 	make vault-base

@@ -28,7 +28,10 @@ yaml-concat: assert-input assert-output
 	fi
 	if [ -d "$$input" ]; then \
 		find $$input/*.yml -type f | \
-		xargs -I {} bash -ex -c 'cat {} | tee -a $$output'; \
+		xargs -I {} bash -ex -c '\
+		cat {} \
+		| tee -a $$output \
+		> $${stdout:-/dev/stdout}'; \
 	fi
 
 # example usage: (invoked via shell, with pipes)
@@ -41,8 +44,14 @@ yaml-to-json:
 
 # example usage: (invoked via shell, with pipes)
 #   $ cat my.yaml | make yaml-validate
-yaml-validate: assert-path
+yaml-validate-pipe:
 	$(call _announce_target, $@)
 	@python -c 'import sys, yaml; yaml.load(sys.stdin)'
+
+yaml-validate-file: assert-path
+	$(call _announce_target, $@)
+	cat $$path | make yaml-validate-pipe
+
+yaml-validate: yaml-validate-file
 
 yaml-validate-dir:
