@@ -15,11 +15,11 @@
 #     * `ecr-create-repo`: create repo if it doesn't exist
 #     * `ecr-login`: login helper, useful as pre-req for other make targets
 #     * `ecr-push`: placeholder description
-#
 
-# example usage:
+
 ecr-login: assert-AWS_PROFILE assert-AWS_REGION
 	$(call _announce_target, $@)
+	@# Tricky escaping
 	$$(AWS_PROFILE=${AWS_PROFILE} aws \
 	ecr get-login --no-include-email --region ${AWS_REGION})
 
@@ -36,14 +36,30 @@ ecr-create-repo: require-jq assert-ECR_PROJECT assert-AWS_PROFILE assert-AWS_REG
 	echo "repo already exists"
 	rm ecr-repos-filtered.json
 
-# example usage:
-ecr-mirror: assert-DOCKER_TAG assert-DOCKER_REGISTRY assert-DOCKER_REPO
+# Example usage:
+#
+#  ```
+#  AWS_PROFILE=YOUR_PROFILE \
+#  DOCKER_REGISTRY=registry.hub.docker.com/library \
+#  DOCKER_REPO=alpine DOCKER_TAG=latest \
+#  ECR_NAMESPACE=external/alpine ECR_BASE=YOUR_ECR_URL_NO_HTTP \
+#  DOCKER_TAG=latest \
+#  make -f Makefile.base.mk -f Makefile.aws-ecr.mk ecr-mirror
+#  ```
+#
+ecr-mirror: assert-DOCKER_TAG assert-DOCKER_REPO assert-DOCKER_REGISTRY assert-ECR_BASE assert-ECR_NAMESPACE
 	$(call _announce_target, $@)
-	docker pull $${DOCKER_REGISTRY}/$${DOCKER_REPO}:$${DOCKER_TAG} \
-	&& make ecr-push
+	docker pull $(value DOCKER_REGISTRY)/$(value DOCKER_REPO):$(value DOCKER_TAG)
+	docker tag \
+	$(value DOCKER_REGISTRY)/$(value DOCKER_REPO):$(value DOCKER_TAG) \
+	$(value ECR_BASE)/$(value ECR_NAMESPACE):$(value DOCKER_TAG)
+	ECR_PROJECT=$(value ECR_NAMESPACE) ${MAKE} ${MY_MAKEFLAGS} ecr-create-repo
+	docker push $(value ECR_BASE)/$(value ECR_NAMESPACE):$(value DOCKER_TAG)
 
 # example usage:
-ecr-push: ecr-login assert-TAG assert-ECR_BASE assert-ECR_NAMESPACE
+ecr-push: ecr-login assert-ecr-vars
 	$(call _announce_target, $@)
-	docker tag $${TAG} $${ECR_BASE}/$${ECR_NAMESPACE}/$${TAG}
-	docker push $${ECR_BASE}/$${ECR_NAMESPACE}/$${TAG}
+	docker tag \
+	$(value TAG) \
+	$(value ECR_BASE)/$(value ECR_NAMESPACE)/$(value TAG)
+	docker push 	$(value ECR_BASE)/$(value ECR_NAMESPACE)/$(value TAG)
