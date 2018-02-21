@@ -37,6 +37,12 @@ ecr-create-repo: require-jq assert-ECR_PROJECT assert-AWS_PROFILE assert-AWS_REG
 	rm ecr-repos-filtered.json
 
 # example usage:
+ecr-mirror: assert-DOCKER_TAG assert-DOCKER_REGISTRY assert-DOCKER_REPO
+	$(call _announce_target, $@)
+	docker pull $${DOCKER_REGISTRY}/$${DOCKER_REPO}:$${DOCKER_TAG} \
+	&& make ecr-push
+
+# example usage:
 ecr-push: ecr-login assert-TAG assert-ECR_BASE assert-ECR_NAMESPACE
 	$(call _announce_target, $@)
 	docker tag $${TAG} $${ECR_BASE}/$${ECR_NAMESPACE}/$${TAG}
