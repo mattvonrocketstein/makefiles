@@ -12,27 +12,35 @@
 # DEPENDS: (other makefiles)
 #   * nothing.  this is the base include
 #
-# INTERFACE: (primary targets intended for export; see usage examples)
-#   STANDARD TARGETS: (communicate with env-vars or make-vars)
+# EXPORTS: (data available to other makefiles)
+#   * MY_MAKEFLAGS: like builtin ${MAKEFLAGS}, but includes --makefile args
 #
+## INTERFACE: (primary targets intended for export; see usage examples)
+#   STANDARD TARGETS: (communicate with env-vars or make-vars)
 #     * `require-%`:for usage as pre-requisite target, with
 #				the provided parameter.  this guard is used to assert
 #       an executable exists in $PATH before entering another
 #       target
-#
 #     * `assert-%`: for usage as pre-requisite target, with
 #				the provided parameter.  this guard is used to assert
 #       an environment variable before entering another target
-#
 #   PIPED TARGETS: (stdin->stdout)
 #     * `placeholder`: placeholder description
 #   MAKE-FUNCTIONS:
 #     * `_show_env`: placeholder description
 #     * `_INFO`, `_DEBUG`,`_WARN`: standardizing loggers
 #
-# VARS: (toplevel overrides, suggested additions for usage as Makefile include)
-#		PLACEHOLDER := ${SRC_ROOT}/.foobar
-#		export ANSIBLE_VAULT_PASSWORD_FILE
+
+# ${MAKEFLAGS} is standard, but does not include --file arguments, see
+# https://www.gnu.org/software/make/manual/html_node/Options_002fRecursion.html
+# this is a constant annoyance whenever make targets want to invoke other make
+# targets with the same environment.  an example value here is something like
+# `-f Makefile.base.mk -f Makefile.ansible.mk`.  this macro is obnoxious, and
+# it makes a strong assumption that only one make-target is given in the main
+# CLI, but it's struggling to succinct and portable
+MY_MAKEFLAGS:=$(shell \
+	ps -p $${PPID} -o command | tail -1 \
+	| xargs -n 1 | tail -n +2  | sed '$$d' | xargs)
 
 define _INFO
 	printf "$(COLOR_YELLOW)(`hostname`) [$@]:$(NO_COLOR) INFO $1\n" 1>&2;
@@ -98,6 +106,7 @@ assert-%:
 assertnot-%:
 	$(call _assertnot_var, $*)
 
+#
 # example usage: (for existing make-target, declare command in $PATH as prereq)
 #
 #    my-target: requires-foo_cmd
