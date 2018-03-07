@@ -44,7 +44,14 @@ vault-encrypt-path: assert-path
 encrypt-path: vault-encrypt-path
 encrypt: encrypt-path
 
-
+encrypt-dir: assert-path
+	$(call _announce_target, $@)
+	find $$path -type f | xargs -n1 -I % bash -ex -c "path=% make vault-encrypt-path"
+decrypt-dir: assert-path
+	$(call _announce_target, $@)
+	find $$path -type f | xargs -n1 -I % bash -ex -c "path=% make vault-decrypt-path"
+vault-decrypt-dir: decrypt-dir
+vault-encrypt-dir: encrypt-dir
 # target `vault-lock`:
 #   encrypts all files in repo matching pattern.
 #   (this can be useful for implementing commit hooks)
