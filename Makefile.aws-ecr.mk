@@ -19,7 +19,7 @@
 
 ecr-login: assert-AWS_PROFILE assert-AWS_REGION
 	$(call _announce_target, $@)
-	@# Tricky escaping
+	@# Careful, tricky escaping
 	$$(AWS_PROFILE=${AWS_PROFILE} aws \
 	ecr get-login --no-include-email --region ${AWS_REGION})
 
@@ -62,4 +62,4 @@ ecr-push: ecr-login assert-ecr-vars
 	docker tag \
 	$(value TAG) \
 	$(value ECR_BASE)/$(value ECR_NAMESPACE)/$(value TAG)
-	docker push 	$(value ECR_BASE)/$(value ECR_NAMESPACE)/$(value TAG)
+	docker push $(value ECR_BASE)/$(value ECR_NAMESPACE)/$(value TAG)

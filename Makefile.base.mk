@@ -27,8 +27,8 @@
 #   PIPED TARGETS: (stdin->stdout)
 #     * `placeholder`: placeholder description
 #   MAKE-FUNCTIONS:
-#     * `_show_env`: placeholder description
-#     * `_INFO`, `_DEBUG`,`_WARN`: standardizing loggers
+#     * `_show_env`: dump a subset of env-vars for easy debugging
+#     * `_INFO`, `_DEBUG`,`_WARN`: standard loggers
 #
 
 # ${MAKEFLAGS} is standard, but does not include --file arguments, see
