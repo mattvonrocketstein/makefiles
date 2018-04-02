@@ -43,5 +43,5 @@ scp-pull: assert-SSH_USER assert-SSH_HOST assert-SSH_KEY
 	scp $(value SSH_OPTS) -i $(value SSH_KEY) $(value SSH_USER)@$(value SSH_HOST):$(value SRC) $(value DEST)
 
 keygen: assert-KEY
-	ssh-keygen -N '' -f $$KEY
+	ssh-keygen -N '' -C $$KEY -f $$KEY
 ssh-keygen: keygen
