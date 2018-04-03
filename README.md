@@ -1,12 +1,10 @@
 <table>
   <tr>
-    <td colspan=2><strong>
-      makefiles
-      </strong>&nbsp;&nbsp;&nbsp;&nbsp;
-      <small><small>
-        <a href=#Features>Features</a> |
-        <a href=#Usage>Usage</a> |
-        <a href=#Rationale>Rationale</a>
+    <td width=15%>makefiles.git
+      </td><td><small><small>
+        <a href=#features>Features</a> |
+        <a href=#usage>Usage</a> |
+        <a href=#rationale>Rationale</a>
       </small><small>
     </td>
   </tr>
@@ -33,7 +31,7 @@ If you, like me, are suspicious of Makefile-based automation, jump to the <a hre
 
 ## Features
 
-**[Makefile.boilerplate.mk](Makefile.boilerplate.mk):** The only file that's not supposed to be use as library/makefile-include, this file contains a suggested template for your top-level project makefile.
+### Library Files
 
 **[Makefile.base.mk](Makefile.base.mk):** Baseline stuff that pretty much all the other Makefile's will require, including colored output for users and assertions on environment variables.  The goal is that this should be the only place that will declare Makefile-functions, because that quickly gets into esoteric rituals.  The rest of these files use make-targets.
 
@@ -41,21 +39,27 @@ If you, like me, are suspicious of Makefile-based automation, jump to the <a hre
 
 **[Makefile.ansible.mk](Makefile.ansible.mk):** Targets that can help give [Ansible](https://docs.ansible.com/) projects concise and reusable entrypoints.
 
-**[Makefile.aws-ecs.mk](#):** [AWS ECS](http://docs.aws.amazon.com/cli/latest/reference/ecs/) related workflows
+**[Makefile.aws-ecs.mk](Makefile.aws-ecs.mk):** [AWS ECS](http://docs.aws.amazon.com/cli/latest/reference/ecs/) related workflows
 
-**[Makefile.bastion.mk](#):** Various [bastion host](https://en.wikipedia.org/wiki/Bastion_host) workflows, covering things related to ssh, rsync, jump hosts, and Ansible.
+**[Makefile.bastion.mk](Makefile.bastion.mk):** Various [bastion host](https://en.wikipedia.org/wiki/Bastion_host) workflows, covering things related to ssh, rsync, jump hosts, and Ansible.
 
-**[Makefile.cloudformation.mk](#):** AWS [Cloudformation](https://aws.amazon.com/cloudformation/) workflows
+**[Makefile.cloudformation.mk](Makefile.cloudformation.mk):** AWS [Cloudformation](https://aws.amazon.com/cloudformation/) workflows
 
-**[Makefile.docker.mk](#):** [Docker](https://www.docker.com/) workflows, including linting, and helpers for working with (potentially remote) [docker-compose](https://docs.docker.com/compose/) based services.
+**[Makefile.docker.mk](Makefile.docker.mk):** [Docker](https://www.docker.com/) workflows, including linting, and helpers for working with (potentially remote) [docker-compose](https://docs.docker.com/compose/) based services.
 
-**[Makefile.git.mk](#):** Git VCS workflows, mostly the uncommon stuff I often struggle to remember (submodules, sync-from-upstream, etc).
+**[Makefile.git.mk](Makefile.git.mk):** Git VCS workflows, mostly the uncommon stuff I often struggle to remember (submodules, sync-from-upstream, etc).
 
-**[Makefile.json.mk](#):** JSON parsing and transformation workflows, many of which use [jq](#placeholder).  There's also helpers for validation, rendering templated JSON, and converting JSON to YAML.
+**[Makefile.json.mk](Makefile.json.mk):** JSON parsing and transformation workflows, many of which use [jq](#placeholder).  There's also helpers for validation, rendering templated JSON, and converting JSON to YAML.
 
-**[Makefile.ssh.mk](#):**  SSH workflow automation targets, including keygen, interactive shells, rsync & scp stuff.  This is here largely for chaining to it, and is a useful foundation for much of the other automation.
+**[Makefile.ssh.mk](Makefile.ssh.mk):**  SSH workflow automation targets, including keygen, interactive shells, rsync & scp stuff.  This is here largely for chaining to it, and is a useful foundation for much of the other automation.
 
-**[Makefile.terraform.mk](#):**  Terraform workflows, especially things that help to access, filter, and convert [terraform outputs](#) so that it can be passed into other systems like ansible or cloudformation.
+**[Makefile.terraform.mk](Makefile.terraform.mk):**  Terraform workflows, especially things that help to access, filter, and convert [terraform outputs](#) so that it can be passed into other systems like ansible or cloudformation.
+
+### Boilerplate & Examples
+
+**[Makefile.examples-embedded.mk](Makefile.examples-embedded.mk):** Demonstrations of embedding other languages inside Makefiles
+
+**[Makefile.boilerplate.mk](Makefile.boilerplate.mk):** Other than the examples, this is the only file that's not supposed to be use as library/makefile-include, this file contains a suggested template for your top-level project makefile.
 
 ## Design
 
