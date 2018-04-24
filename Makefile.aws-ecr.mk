@@ -57,9 +57,9 @@ ecr-mirror: assert-DOCKER_TAG assert-DOCKER_REPO assert-DOCKER_REGISTRY assert-E
 	docker push $(value ECR_BASE)/$(value ECR_NAMESPACE):$(value DOCKER_TAG)
 
 # example usage:
-ecr-push: ecr-login assert-ecr-vars
+ecr-push: ecr-login assert-DOCKER_TAG assert-ECR_BASE assert-ECR_NAMESPACE
 	$(call _announce_target, $@)
 	docker tag \
-	$(value TAG) \
-	$(value ECR_BASE)/$(value ECR_NAMESPACE)/$(value TAG)
-	docker push $(value ECR_BASE)/$(value ECR_NAMESPACE)/$(value TAG)
+	$(value DOCKER_TAG) \
+	$(value ECR_BASE)/$(value ECR_NAMESPACE)/$(value DOCKER_TAG)
+	docker push $(value ECR_BASE)/$(value ECR_NAMESPACE)/$(value DOCKER_TAG)
