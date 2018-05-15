@@ -17,6 +17,11 @@ sceptre-describe-env: assert-env
 	sceptre_cmd="$${sceptre_extra:-} describe-env $(value env)" \
 	make sceptre-base
 
+sceptre-describe-stack: assert-env assert-stack
+	$(call _announce_target, $@)
+	sceptre --dir ${SCEPTRE_ROOT} describe-stack-outputs $(value env) $(value stack)
+	sceptre --dir ${SCEPTRE_ROOT} describe-stack-resources $(value env) $(value stack)
+
 sceptre-describe-envs:
 	$(call _announce_target, $@)
 	@find ${SCEPTRE_ROOT}/config/* \
@@ -28,3 +33,4 @@ sd: sceptre-describe
 sle: sceptre-launch-env
 sls: sceptre-launch-stack
 sde: sceptre-describe-env
+sds: sceptre-describe-stack
