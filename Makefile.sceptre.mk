@@ -1,6 +1,10 @@
+##
+# See the docs/sceptre.md file for more information and examples
+##
 sceptre-base: assert-sceptre_cmd
 	$(call _announce_target, $@)
-	sceptre --dir ${SCEPTRE_ROOT} $${sceptre_extra:-} $(value sceptre_cmd)
+	sceptre --dir ${SCEPTRE_ROOT} \
+	$${sceptre_extra:-} $(value sceptre_cmd)
 
 sceptre-launch-env: assert-env
 	$(call _announce_target, $@)
