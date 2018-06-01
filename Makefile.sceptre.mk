@@ -11,6 +11,11 @@ sceptre-launch-env: assert-env
 	sceptre_cmd="launch-env $${env}" \
 	make sceptre-base
 
+sceptre-generate-template: assert-env assert-stack
+	$(call _announce_target, $@)
+	sceptre_cmd="generate-template $${env} $$stack" \
+	make sceptre-base
+
 sceptre-launch-stack: assert-env assert-stack
 	$(call _announce_target, $@)
 	sceptre_cmd="launch-stack $${env} $${stack}" \
@@ -38,3 +43,4 @@ sle: sceptre-launch-env
 sls: sceptre-launch-stack
 sde: sceptre-describe-env
 sds: sceptre-describe-stack
+sgt: sceptre-generate-template
