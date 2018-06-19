@@ -31,7 +31,7 @@ JJB_INI ?= jenkins.ini.vault
 JJB_JOB_TEMPLATE_DIR ?= ${SRC_ROOT}/jenkins-jobs
 JJB_JOB_RENDER_DIR ?= ${SRC_ROOT}/.jjb-render
 JJB_JOB_RENDER_OUT ?= ${JJB_JOB_RENDER_DIR}/rendered-jobs.yml
-
+JJB_NUM_WORKERS ?= 0
 # assert jenkins-jobs is in $PATH
 require-jjb:
 	@jenkins-jobs --version
@@ -55,7 +55,7 @@ jjb-decrypt-config:
 jjb-sync: jjb-validate jjb-decrypt-config
 	$(call _announce_target, $@)
 	jenkins-jobs -l DEBUG \
-	--conf ${JJB_INI} update ${JJB_JOB_RENDER_OUT}
+	--conf ${JJB_INI} update --workers ${JJB_NUM_WORKERS} ${JJB_JOB_RENDER_OUT}
 
 # simple renderer, just concatenates yaml
 # files which are stored flatly, with no
