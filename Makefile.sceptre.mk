@@ -9,7 +9,6 @@ sceptre-base: assert-sceptre_cmd
 	$(call _announce_target, $@)
 	REPO_NAME=$(REPO_NAME) \
 	SHA=$(SHA) \
-	CONFIG_PATH="cloudformation/config/${env}/$stack}" \
 	sceptre --debug --dir ${SCEPTRE_ROOT} \
 	$${sceptre_extra:-} $(value sceptre_cmd)
 
