@@ -1,8 +1,14 @@
 ##
 # See the docs/sceptre.md file for more information and examples
 ##
+
+REPO_NAME=$(shell basename -s .git `git config --get remote.origin.url`)
+SHA=$(shell git rev-parse HEAD)
+
 sceptre-base: assert-sceptre_cmd
 	$(call _announce_target, $@)
+	REPO_NAME=$(REPO_NAME) \
+	SHA=$(SHA) \
 	sceptre --debug --dir ${SCEPTRE_ROOT} \
 	$${sceptre_extra:-} $(value sceptre_cmd)
 
