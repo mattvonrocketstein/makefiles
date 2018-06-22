@@ -2,7 +2,7 @@
 # See the docs/sceptre.md file for more information and examples
 ##
 
-REPO_NAME=$(shell basename `git rev-parse --show-toplevel`)
+REPO_NAME=$(shell basename -s .git `git config --get remote.origin.url`)
 SHA=$(shell git rev-parse HEAD)
 
 sceptre-base: assert-sceptre_cmd
