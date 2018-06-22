@@ -19,3 +19,14 @@
 
 python-requirements:
 	pip install -r ${SRC_ROOT}/requirements.txt
+
+python-normalize: assert-src
+	find $$src -type f \
+	| grep .py$ \
+	| xargs autopep8 --in-place
+
+python-static-analysis: assert-src
+	$(call _announce_target, $@)
+	find $$src -type f \
+	| grep .py$ \
+	| xargs flake8
