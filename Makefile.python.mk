@@ -22,11 +22,11 @@ python-requirements:
 
 python-normalize: assert-src
 	find $$src -type f \
-	| grep .py$ \
+	| grep .py$$ \
 	| xargs autopep8 --in-place
 
 python-static-analysis: assert-src
 	$(call _announce_target, $@)
 	find $$src -type f \
-	| grep .py$ \
+	| grep .py$$ \
 	| xargs flake8
