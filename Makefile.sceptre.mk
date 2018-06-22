@@ -1,8 +1,14 @@
 ##
 # See the docs/sceptre.md file for more information and examples
 ##
+
+REPO_NAME=$(shell basename `git rev-parse --show-toplevel`)
+SHA=$(shell git rev-parse HEAD)
+
 sceptre-base: assert-sceptre_cmd
 	$(call _announce_target, $@)
+	REPO_NAME=$(REPO_NAME) \
+	SHA=$(SHA) \
 	sceptre --debug --dir ${SCEPTRE_ROOT} \
 	$${sceptre_extra:-} $(value sceptre_cmd)
 
@@ -24,6 +30,11 @@ sceptre-delete-stack: assert-env assert-stack
 sceptre-launch-stack: assert-env assert-stack
 	$(call _announce_target, $@)
 	sceptre_cmd="launch-stack $${env} $${stack}" \
+	make sceptre-base
+
+sceptre-update-stack: assert-env assert-stack
+	$(call _announce_target, $@)
+	sceptre_cmd="update-stack $${env} $${stack}" \
 	make sceptre-base
 
 sceptre-create-change-set: assert-env assert-stack
@@ -63,4 +74,5 @@ sde: sceptre-describe-env
 sds: sceptre-describe-stack
 sle: sceptre-launch-env
 sls: sceptre-launch-stack
+sus: sceptre-update-stack
 sgt: sceptre-generate-template
