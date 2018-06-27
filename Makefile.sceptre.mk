@@ -38,6 +38,22 @@ sceptre-create-change-set: assert-env assert-stack
 	make sceptre-base
 sceptre-create-changeset: sceptre-create-change-set
 scc: sceptre-create-changeset
+sccs: sceptre-create-changeset
+
+sceptre-delete-change-set: assert-env assert-stack
+	$(call _announce_target, $@)
+	sceptre_cmd="delete-change-set $${env} $${stack} $${env}-$${stack} " \
+	make sceptre-base
+sceptre-delete-changeset: sceptre-delete-change-set
+sdc: sceptre-delete-changeset
+sdcs: sceptre-delete-changeset
+
+sceptre-execute-change-set: assert-env assert-stack
+	$(call _announce_target, $@)
+	sceptre_cmd="execute-change-set $${env} $${stack} $${env}-$${stack} " \
+	make sceptre-base
+sceptre-exec-change-set: sceptre-execute-change-set
+sceptre-exec-changeset: sceptre-execute-change-set
 
 sceptre-describe-change-set: assert-env assert-stack
 	$(call _announce_target, $@)
