@@ -9,7 +9,7 @@ sceptre-base: assert-sceptre_cmd
 	$(call _announce_target, $@)
 	REPO_NAME=$(REPO_NAME) \
 	SHA=$(SHA) \
-	sceptre --debug --dir ${SCEPTRE_ROOT} \
+	sceptre --dir ${SCEPTRE_ROOT} \
 	$${sceptre_extra:-} $(value sceptre_cmd)
 
 sceptre-launch-env: assert-env
@@ -53,8 +53,10 @@ sceptre-describe-env: assert-env
 
 sceptre-describe-stack: assert-env assert-stack
 	$(call _announce_target, $@)
-	sceptre --dir ${SCEPTRE_ROOT} describe-stack-outputs $(value env) $(value stack)
-	sceptre --dir ${SCEPTRE_ROOT} describe-stack-resources $(value env) $(value stack)
+	sceptre_cmd="describe-stack-outputs $(value env) $(value stack)" \
+	make sceptre-base
+	sceptre_cmd="describe-stack-resources $(value env) $(value stack)" \
+	make sceptre-base
 
 sceptre-describe-envs:
 	$(call _announce_target, $@)
