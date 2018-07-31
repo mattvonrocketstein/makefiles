@@ -25,6 +25,10 @@ docker-lint:
 	$(call _announce_target, $@)
 	docker run --rm -i hadolint/hadolint < Dockerfile
 
+docker-find-tag: assert-TAG
+	$(call _announce_target, $@)
+	docker images ${TAG} | grep -v 'IMAGE ID'
+
 # target `docker-remote-shell`:
 #   This target defers to the `ssh` target as far as setting up private keys,
 #   usernames, and any other SSH options.
