@@ -29,7 +29,7 @@ ecr-create-repo: require-jq assert-ECR_PROJECT assert-AWS_REGION
 	aws ecr describe-repositories | \
 	jq '.repositories[].repositoryName | select(test ("$${ECR_PROJECT}"))' \
 	> ecr-repos-filtered.json
-	[[ -z "`cat ecr-repos-filtered.json`" ]] && \
+	[ -z "`cat ecr-repos-filtered.json`" ] && \
 	AWS_DEFAULT_REGION=${AWS_REGION} \
 	aws ecr create-repository --repository-name $${ECR_PROJECT} || \
 	echo "repo already exists"
@@ -40,25 +40,25 @@ ecr-create-repo: require-jq assert-ECR_PROJECT assert-AWS_REGION
 #  ```
 #  AWS_PROFILE=YOUR_PROFILE \
 #  DOCKER_REGISTRY=registry.hub.docker.com/library \
-#  DOCKER_REPO=alpine DOCKER_TAG=latest \
-#  ECR_NAMESPACE=external/alpine ECR_BASE=YOUR_ECR_URL_NO_HTTP \
+#  DOCKER_IMAGE=alpine \
+#  ECR_REPO=external/alpine ECR_BASE=YOUR_ECR_URL_NO_HTTP \
 #  DOCKER_TAG=latest \
 #  make -f Makefile.base.mk -f Makefile.aws-ecr.mk ecr-mirror
 #  ```
 #
-ecr-mirror: assert-DOCKER_TAG assert-DOCKER_REPO assert-DOCKER_REGISTRY assert-ECR_BASE assert-ECR_NAMESPACE
+ecr-mirror: ecr-login assert-DOCKER_TAG assert-DOCKER_IMAGE assert-DOCKER_REGISTRY assert-ECR_BASE assert-ECR_REPO
 	$(call _announce_target, $@)
-	docker pull $(value DOCKER_REGISTRY)/$(value DOCKER_REPO):$(value DOCKER_TAG)
+	docker pull $(value DOCKER_REGISTRY)/$(value DOCKER_IMAGE):$(value DOCKER_TAG)
 	docker tag \
-	$(value DOCKER_REGISTRY)/$(value DOCKER_REPO):$(value DOCKER_TAG) \
-	$(value ECR_BASE)/$(value ECR_NAMESPACE):$(value DOCKER_TAG)
-	ECR_PROJECT=$(value ECR_NAMESPACE) ${MAKE} ${MY_MAKEFLAGS} ecr-create-repo
-	docker push $(value ECR_BASE)/$(value ECR_NAMESPACE):$(value DOCKER_TAG)
+	$(value DOCKER_REGISTRY)/$(value DOCKER_IMAGE):$(value DOCKER_TAG) \
+	$(value ECR_BASE)/$(value ECR_REPO):$(value DOCKER_TAG)
+	ECR_PROJECT=$(value ECR_REPO) ${MAKE} ${MY_MAKEFLAGS} ecr-create-repo
+	docker push $(value ECR_BASE)/$(value ECR_REPO):$(value DOCKER_TAG)
 
 # example usage:
-ecr-push: ecr-login assert-DOCKER_TAG assert-ECR_BASE assert-ECR_NAMESPACE
+ecr-push: ecr-login assert-DOCKER_TAG assert-ECR_BASE assert-ECR_REPO
 	$(call _announce_target, $@)
 	docker tag \
 	$(value DOCKER_TAG) \
-	$(value ECR_BASE)/$(value ECR_NAMESPACE)/$(value DOCKER_TAG)
-	docker push $(value ECR_BASE)/$(value ECR_NAMESPACE)/$(value DOCKER_TAG)
+	$(value ECR_BASE)/$(value ECR_REPO)/$(value DOCKER_TAG)
+	docker push $(value ECR_BASE)/$(value ECR_REPO)/$(value DOCKER_TAG)
