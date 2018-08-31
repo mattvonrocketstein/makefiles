@@ -45,3 +45,12 @@ docker-remote-shell: assert-SERVICE assert-COMPOSE_FILE assert-SERVICE_USER
 	@# yep, need three \ to escape here
 	SSH_CMD="docker exec -it -u $(value SERVICE_USER) \\\`${DOCKER_PS_CMD}\\\` $(value SERVICE_SHELL)" \
 	make ssh-generic
+
+# pretty aggressive system clean, removing cached images
+docker-prune:
+	docker system prune -af
+
+docker-compose-clean:
+	$(call _announce_target, $@)
+	docker-compose down --remove-orphans --rmi all
+	docker-compose rm -f
