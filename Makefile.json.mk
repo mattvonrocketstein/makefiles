@@ -43,6 +43,12 @@ json-validate: assert-path
 	/dev/null && exit 0 || \
 	echo "NOT valid JSON"; exit 1
 
+json-validate-dir: assert-path
+	find $$path -type f \
+	| egrep "[.](json)$$" \
+	| xargs -n 1 -I % bash -x -c \
+	"path=% make json-validate || exit 255"
+
 # A prereq target to ensure fail-fast if jq is not present
 require-jq:
 	@jq --version &> /dev/null

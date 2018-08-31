@@ -46,7 +46,10 @@ yaml-to-json:
 #   $ cat my.yaml | make yaml-validate
 yaml-validate-pipe:
 	$(call _announce_target, $@)
-	@python -c 'import sys, yaml; yaml.load(sys.stdin)'
+	@python -c "\
+	import sys, yaml; \
+	yaml.add_multi_constructor('!', lambda loader, suffix, node: None); \
+	yaml.load(sys.stdin)"
 
 yaml-validate-file: assert-path
 	$(call _announce_target, $@)
@@ -54,4 +57,7 @@ yaml-validate-file: assert-path
 
 yaml-validate: yaml-validate-file
 
-yaml-validate-dir:
+yaml-validate-dir: assert-path
+	find $$path -type f \
+	| egrep "[.](yaml|yml)$$" \
+	| xargs -n 1 -I % bash -x -c "path=% make yaml-validate || exit 255"
