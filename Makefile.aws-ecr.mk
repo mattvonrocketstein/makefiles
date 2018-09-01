@@ -58,7 +58,6 @@ ecr-mirror: ecr-login assert-DOCKER_TAG assert-DOCKER_IMAGE assert-DOCKER_REGIST
 # example usage:
 ecr-push: ecr-login assert-DOCKER_TAG assert-ECR_BASE assert-ECR_REPO
 	$(call _announce_target, $@)
-	docker tag \
-	$(value DOCKER_TAG) \
-	$(value ECR_BASE)/$(value ECR_REPO)/$(value DOCKER_TAG)
-	docker push $(value ECR_BASE)/$(value ECR_REPO)/$(value DOCKER_TAG)
+	$(eval DEST_TAG?=${DOCKER_TAG})
+	docker tag $(value DOCKER_TAG) $(value ECR_BASE)/$(value ECR_REPO)/$(value DEST_TAG)
+	docker push $(value ECR_BASE)/$(value ECR_REPO)/$(value DEST_TAG)
