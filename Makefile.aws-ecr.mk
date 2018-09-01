@@ -20,7 +20,7 @@
 ecr-login: assert-AWS_REGION
 	$(call _announce_target, $@)
 	@# Careful, tricky escaping
-	$$(aws ecr get-login --no-include-email --region ${AWS_REGION})
+	@$$(aws ecr get-login --no-include-email --region ${AWS_REGION})
 
 # example usage:
 ecr-create-repo: require-jq assert-ECR_PROJECT assert-AWS_REGION
