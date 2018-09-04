@@ -56,7 +56,6 @@ sceptre-describe-change-set: assert-env assert-stack
 	make sceptre-base
 sceptre-describe-changeset: sceptre-describe-change-set
 
-
 sceptre-describe-env: assert-env
 	$(call _announce_target, $@)
 	sceptre_cmd="$${sceptre_extra:-} describe-env $(value env)" \
@@ -73,7 +72,8 @@ sceptre-describe-envs:
 	$(call _announce_target, $@)
 	@find ${SCEPTRE_ROOT}/config/* \
 	-maxdepth 1 -type d -exec basename {} \; \
-	| xargs -I {} sceptre --dir ${SCEPTRE_ROOT} describe-env {}
+	| xargs -I {} bash -x -c \
+	"sceptre --dir ${SCEPTRE_ROOT} describe-env {}"
 sceptre-describe: sceptre-describe-envs
 
 # pulls an individual named export from a given stack
