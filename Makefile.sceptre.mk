@@ -76,6 +76,15 @@ sceptre-describe-envs:
 	| xargs -I {} sceptre --dir ${SCEPTRE_ROOT} describe-env {}
 sceptre-describe: sceptre-describe-envs
 
+# pulls an individual named export from a given stack
+# staty quiet here, we need to remain pipe safe.
+sceptre-pull-export: assert-env assert-stack assert-name
+	@sceptre --dir ${SCEPTRE_ROOT} \
+	describe-stack-outputs $(value env) $(value stack) \
+	| make yaml-to-json \
+	| jq -r '.[]|select(.OutputKey=="$(value name)").OutputValue'
+
+
 sd: sceptre-describe
 sdc: sceptre-describe-change-set
 sde: sceptre-describe-env
