@@ -77,9 +77,9 @@ ecr-mirror-all-x-account: require-jq assert-ECR_REPO_FILTER assert-SRC_AWS_REGIO
 	aws ecr describe-repositories --region ${SRC_AWS_REGION} --profile ${SRC_AWS_PROFILE} | \
 	jq -r ".repositories[].repositoryName" | \
 	grep ${ECR_REPO_FILTER} \
-	> ecr-repos.tmp
-	xargs -0 -I '{}' -n 1 ${MAKE} ecr-mirror-x-account ${MAKEFLAGS} ECR_REPO='{}' < <(tr \\n \\0 <ecr-repos.tmp)
-	rm ecr-repos.tmp
+	> .tmp.ecr-repos
+	xargs -0 -I '{}' -n 1 ${MAKE} ecr-mirror-x-account ${MAKEFLAGS} ECR_REPO='{}' < <(tr \\n \\0 <.tmp.ecr-repos)
+	rm .tmp.ecr-repos
 
 # example
 # make ecr-mirror-x-account \
@@ -92,9 +92,9 @@ ecr-mirror-x-account: require-jq assert-ECR_REPO assert-SRC_AWS_REGION assert-SR
 	@$$(aws ecr get-login --no-include-email --region ${DST_AWS_REGION} --profile ${DST_AWS_PROFILE})
 	aws ecr describe-images --region ${SRC_AWS_REGION} --profile ${SRC_AWS_PROFILE} --repository-name ${ECR_REPO} | \
 	jq -r '.imageDetails[].imageTags[]' \
-	> ecr-image-tags.tmp
+	> .tmp.ecr-image-tags
 	AWS_REGION=$(value DST_AWS_REGION) AWS_PROFILE=$(value DST_AWS_PROFILE) ECR_PROJECT=$(value ECR_REPO) ${MAKE} ecr-create-repo
 	DOCKER_IMAGE=$(value ECR_REPO) \
 	DOCKER_REGISTRY=$(value SRC_ECR_BASE) ECR_BASE=$(value DST_ECR_BASE) \
-	xargs -0 -I '{}' -n 1 ${MAKE} ecr-mirror-do DOCKER_TAG='{}' < <(tr \\n \\0 <ecr-image-tags.tmp)
-	rm ecr-image-tags.tmp
+	xargs -0 -I '{}' -n 1 ${MAKE} ecr-mirror-do DOCKER_TAG='{}' < <(tr \\n \\0 <.tmp.ecr-image-tags)
+	rm .tmp.ecr-image-tags
