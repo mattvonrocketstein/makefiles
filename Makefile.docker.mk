@@ -67,6 +67,7 @@ docker-compose-clean:
 	docker-compose down --remove-orphans --rmi all
 	docker-compose rm -f
 dcc: docker-compose-clean
+
 # Target brings up the given service, building first if necessary,
 # propagates error codes correctly, and tears down after exit
 docker-compose-up: assert-service docker-build-maybe
@@ -81,5 +82,5 @@ dcu: docker-compose-up
 
 docker-compose-build:
 	$(call _announce_target, $@)
-	docker-compose build --force-rm --no-cache base
+	docker-compose build --force-rm --no-cache $${service:-app_base}
 db: docker-compose-build
