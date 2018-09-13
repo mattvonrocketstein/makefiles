@@ -76,7 +76,7 @@ ecr-mirror-all-x-account: require-jq assert-ECR_REPO_FILTER assert-SRC_AWS_REGIO
 	@$$(aws ecr get-login --no-include-email --region ${DST_AWS_REGION} --profile ${DST_AWS_PROFILE})
 	aws ecr describe-repositories --region ${SRC_AWS_REGION} --profile ${SRC_AWS_PROFILE} | \
 	jq -r ".repositories[].repositoryName" | \
-	grep ${ECR_REPO_FILTER} \
+	grep "${ECR_REPO_FILTER}" \
 	> .tmp.ecr-repos
 	xargs -0 -I '{}' -n 1 ${MAKE} ecr-mirror-x-account ${MAKEFLAGS} ECR_REPO='{}' < <(tr \\n \\0 <.tmp.ecr-repos)
 	rm .tmp.ecr-repos
