@@ -97,7 +97,7 @@ ecr-mirror-x-account: require-jq assert-ECR_REPO assert-SRC_AWS_REGION assert-SR
 	@$$(aws ecr get-login --no-include-email --region ${SRC_AWS_REGION} --profile ${SRC_AWS_PROFILE})
 	@$$(aws ecr get-login --no-include-email --region ${DST_AWS_REGION} --profile ${DST_AWS_PROFILE})
 	aws ecr describe-images --region ${SRC_AWS_REGION} --profile ${SRC_AWS_PROFILE} --repository-name ${ECR_REPO} | \
-	jq -r '.imageDetails[].imageTags[]' \
+	jq -r '.imageDetails[].imageTags[]?' \
 	> .tmp.ecr-image-tags
 	AWS_REGION=$(value DST_AWS_REGION) AWS_PROFILE=$(value DST_AWS_PROFILE) ECR_PROJECT=$(value ECR_REPO) ${MAKE} ecr-create-repo
 	DOCKER_IMAGE=$(value ECR_REPO) \
