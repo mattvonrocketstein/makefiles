@@ -17,10 +17,16 @@
 #     * `ecr-push`: placeholder description
 
 
+# Optional parameters:
+#   ECR_REGISTRY - login to provided ECR registry id
 ecr-login: assert-AWS_REGION
 	$(call _announce_target, $@)
 	@# Careful, tricky escaping
-	@$$(aws ecr get-login --no-include-email --region ${AWS_REGION})
+	$(eval LOGIN_CMD = "aws ecr get-login --no-include-email --region ${AWS_REGION}")
+ifdef ECR_REGISTRY
+	$(eval LOGIN_CMD += "--registry-ids ${ECR_REGISTRY}")
+endif
+	@$$(eval ${LOGIN_CMD})
 
 # example usage:
 ecr-create-repo: require-jq assert-ECR_PROJECT assert-AWS_REGION
