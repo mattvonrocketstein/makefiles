@@ -17,15 +17,10 @@
 #     * `ecr-push`: placeholder description
 
 
-# Optional parameters:
-#   ECR_REGISTRY - login to provided ECR registry id
-ecr-login: assert-AWS_REGION
+ecr-login: assert-ECR_REGION assert-ECR_REGISTRY
 	$(call _announce_target, $@)
 	@# Careful, tricky escaping
-	$(eval LOGIN_CMD = "aws ecr get-login --no-include-email --region ${AWS_REGION}")
-ifdef ECR_REGISTRY
-	$(eval LOGIN_CMD += "--registry-ids ${ECR_REGISTRY}")
-endif
+	$(eval LOGIN_CMD = "aws ecr get-login --no-include-email --region $(value ECR_REGION) --registry-ids $(value ECR_REGISTRY)")
 	@$$(eval ${LOGIN_CMD})
 
 # example usage:
