@@ -76,6 +76,21 @@ sceptre-describe-envs:
 	"sceptre --dir ${SCEPTRE_ROOT} describe-env {}"
 sceptre-describe: sceptre-describe-envs
 
+sceptre-describe-envs-include-filter: assert-filter
+	$(call _announce_target, $@)
+	@find ${SCEPTRE_ROOT}/config/* \
+	-maxdepth 1 -type d -exec basename {} \; \
+	| grep -E "${filter}" \
+	| xargs -I {} bash -x -c \
+	"sceptre --dir ${SCEPTRE_ROOT} describe-env {}"
+sceptre-describe-envs-exclude-filter: assert-filter
+	$(call _announce_target, $@)
+	@find ${SCEPTRE_ROOT}/config/* \
+	-maxdepth 1 -type d -exec basename {} \; \
+	| grep -vE "${filter}" \
+	| xargs -I {} bash -x -c \
+	"sceptre --dir ${SCEPTRE_ROOT} describe-env {}"
+
 # pulls an individual named export from a given stack
 # staty quiet here, we need to remain pipe safe.
 sceptre-pull-export: assert-env assert-stack assert-name
