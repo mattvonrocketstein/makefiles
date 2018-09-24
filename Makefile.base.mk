@@ -135,6 +135,7 @@ _help-helper:
 	$(MAKE) -p no_targets__ | \
 	awk -F':' '/^[a-zA-Z0-9][^\$$#\/\\t=]*:([^=]|$$)/ {split(\$$1,A,/ /);\
 	for(i in A)print A[i]}' | grep -v '__\$$' | grep -v '\[' | sort"
+
 help:
 	$(call _announce_target, $@)
 	@make _help-helper \
@@ -173,6 +174,7 @@ COLOR_YELLOW=${WARN_COLOR}
 OK_STRING=$(COLOR_GREEN)[OK]$(NO_COLOR)
 ERROR_STRING=$(ERROR_COLOR)[ERROR]$(NO_COLOR)
 WARN_STRING=$(WARN_COLOR)[WARNING]$(NO_COLOR)
+
 # Colors
 ESC_SEQ="\x1b["
 COL_RESET=$ESC_SEQ"39;49;00m"
@@ -182,6 +184,7 @@ COL_YELLOW=$ESC_SEQ"33;01m"
 COL_BLUE=$ESC_SEQ"34;01m"
 COL_MAGENTA=$ESC_SEQ"35;01m"
 COL_CYAN=$ESC_SEQ"36;01m"
+
 define _announce_target
 	@printf "$(COLOR_GREEN)(`hostname`) [target]:$(NO_COLOR) $@\n" 1>&2
 endef
@@ -190,11 +193,19 @@ define _stage
 	@printf "$(COLOR_YELLOW)(`hostname`) [stage]:$(NO_COLOR) ${1}\n " 1>&2;
 endef
 
-# example:
+# really, don't mess with this.  it looks like there's two
+# newlines here, but there's actually magic.  see also the docs here
+# https://www.cmcrossroads.com/article/gnu-make-escaping-walk-wild-side
+define newline
+
+
+endef
+
 define _fail
 	@INDENTION="  "; \
 	printf "$(COLOR_RED)(`hostname`) [FAIL]:$(NO_COLOR)\n$${INDENTION}${1}\n" 1>&2;
 	exit 1
 endef
+
 fail:
 	$(call _fail, $${MSG})
