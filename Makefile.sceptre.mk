@@ -4,8 +4,12 @@
 
 sceptre-base: assert-sceptre_cmd
 	$(call _announce_target, $@)
-	sceptre --dir ${SCEPTRE_ROOT} \
-	$${sceptre_extra:-} $(value sceptre_cmd)
+	sceptre --dir ${SCEPTRE_ROOT} $${sceptre_extra:-} $(value sceptre_cmd)
+
+# same as sceptre-base, but more suitable for pipes
+sceptre-base-quiet: assert-sceptre_cmd
+	$(call _announce_target, $@)
+	@sceptre --dir ${SCEPTRE_ROOT} $${sceptre_extra:-} $(value sceptre_cmd)
 
 sceptre-launch-env: assert-env
 	$(call _announce_target, $@)
@@ -14,8 +18,13 @@ sceptre-launch-env: assert-env
 
 sceptre-generate-template: assert-env assert-stack
 	$(call _announce_target, $@)
-	sceptre_cmd="generate-template $${env} $$stack" \
-	make sceptre-base
+	sceptre_cmd="generate-template $${env} $$stack" make sceptre-base
+
+# same as sceptre-generate-template, includes line numbers
+sceptre-generate-template-lines: assert-env assert-stack
+	$(call _announce_target, $@)
+	@sceptre_cmd="generate-template $${env} $$stack" make sceptre-base-quiet \
+	| awk '{printf "%d\t%s\n", NR, $$0}'
 
 sceptre-delete-stack: assert-env assert-stack
 	$(call _announce_target, $@)
@@ -107,3 +116,4 @@ sds: sceptre-describe-stack
 sle: sceptre-launch-env
 sls: sceptre-launch-stack
 sgt: sceptre-generate-template
+sgtl: sceptre-generate-template-lines
