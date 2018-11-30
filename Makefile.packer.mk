@@ -47,7 +47,7 @@ packer-get-key:
 
 packer-build: assert-PACKER_IMAGE assert-PACKER_CONFIG packer-get-key
 	$(call _announce_target, $@)
-	cat ${PACKER_CONFIG} | jq \
+	cat ${PACKER_CONFIG} | jq . \
 	&& docker run -i \
 	-v `pwd`:/workspace \
 	-v ~/.aws:/root/.aws \
