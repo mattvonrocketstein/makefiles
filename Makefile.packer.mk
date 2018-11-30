@@ -5,8 +5,8 @@
 # for build output file; this includes the ami id
 PACKER_MANIFEST ?= manifest.json
 # for rendering (commented) yaml to the JSON that packer requires
-PACKER_CONFIG_YAML ?= packer/build_ami.yaml
-PACKER_CONFIG_JSON ?= packer/build_ami.json
+PACKER_CONFIG_YAML ?= packer.yaml
+PACKER_CONFIG_JSON ?= packer.json
 PACKER_CONFIG = ${PACKER_CONFIG_JSON}
 PACKER_KEY_FILE ?= packer.pem
 export PACKER_CONFIG PACKER_KEY_FILE PACKER_CONFIG_YAML PACKER_CONFIG_JSON PACKER_MANIFEST
