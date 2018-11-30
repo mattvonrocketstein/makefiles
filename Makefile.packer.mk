@@ -11,8 +11,8 @@ PACKER_CONFIG = ${PACKER_CONFIG_JSON}
 PACKER_KEY_FILE ?= packer.pem
 export PACKER_CONFIG PACKER_KEY_FILE PACKER_CONFIG_YAML PACKER_CONFIG_JSON PACKER_MANIFEST
 
-PACKER_REPO = $(shell basename -s .git `git config --get remote.origin.url`)
-PACKER_AMI_NAME?= $(shell python -c "print '${PACKER_REPO}'.replace('ami-', '').replace('ami','')")
+PACKER_REPO:=$(shell basename -s .git `git config --get remote.origin.url`)
+PACKER_AMI_NAME:=$(shell python -c "print '${PACKER_REPO}'.replace('ami-', '').replace('ami','')")
 export PACKER_REPO PACKER_AMI_NAME
 
 # packer hates yaml, but just to have comments
