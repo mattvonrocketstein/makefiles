@@ -7,7 +7,7 @@ PACKER_MANIFEST ?= manifest.json
 # for rendering (commented) yaml to the JSON that packer requires
 PACKER_CONFIG_YAML ?= packer.yaml
 PACKER_CONFIG_JSON ?= packer.json
-PACKER_CONFIG = ${PACKER_CONFIG_JSON}
+PACKER_CONFIG := ${PACKER_CONFIG_JSON}
 PACKER_KEY_FILE ?= packer.pem
 PACKER_IMAGE ?= 870326185936.dkr.ecr.us-east-2.amazonaws.com/605data/packer:605
 export PACKER_IMAGE PACKER_MANIFEST
@@ -21,7 +21,7 @@ export PACKER_REPO PACKER_AMI_NAME
 # we sometimes use it anyway and convert to json
 packer-render: assert-PACKER_CONFIG_YAML assert-PACKER_CONFIG_JSON
 	$(call _announce_target, $@)
-	cat ${PACKER_CONFIG_YAML} | make yaml-to-json > ${PACKER_CONFIG_JSON}
+	cat $(value PACKER_CONFIG_YAML) | make yaml-to-json > $(value PACKER_CONFIG_JSON)
 
 # gets the AMI ID(s) for the last build(s).
 # stay quiet so this is suitable for pipes
@@ -30,7 +30,7 @@ packer-get-ami:
 
 packer-clean:
 	$(call _announce_target, $@)
-	rm -f ${PACKER_MANIFEST} ${PACKER_CONFIG_JSON}
+	rm -f $(value PACKER_MANIFEST) $(value PACKER_CONFIG_JSON)
 
 packer-get-amis:
 	@cat ${PACKER_MANIFEST} \
@@ -76,17 +76,15 @@ packer-tag: assert-PACKER_TAG assert-PACKER_MANIFEST
 
 packer-build: assert-PACKER_IMAGE assert-PACKER_CONFIG packer-get-key
 	$(call _announce_target, $@)
-	cat ${PACKER_CONFIG} | jq . \
-	&& env | grep PACKER_ | docker run -i \
-	--env-file /dev/stdin \
+	cat $(value PACKER_CONFIG) | jq .
+	docker run -i \
 	-v `pwd`:/workspace \
 	-v ~/.aws:/root/.aws \
 	-w /workspace \
-	${PACKER_IMAGE} build \
+	$(value PACKER_IMAGE) build \
 	-var repo=$(value PACKER_REPO) \
 	-var ami_name=$(value PACKER_AMI_NAME) \
 	-var sha=`git rev-parse HEAD` \
 	-var branch=`git name-rev HEAD|awk '{print $$NF}'` \
-	-var packer_manifest_file=${PACKER_MANIFEST} \
-	$${PACKER_EXTRA_ARGS:-} ${PACKER_CONFIG} \
-	| tee build.out
+	-var packer_manifest_file=$(value PACKER_MANIFEST) \
+	$${PACKER_EXTRA_ARGS:-} $(value PACKER_CONFIG)
