@@ -62,9 +62,11 @@ print "parsing packer config at: {}".format(packer_config)
 assert os.path.exists(packer_config), "config does not exist!"
 config = json.loads(open(packer_config).read())
 profile = config["builders"][0]["profile"]
-artifacts = [b["artifact_id"] for b in manifest["builds"]]
-cmd_t = "echo AWS_DEFAULT_REGION={region} AWS_PROFILE={profile} aws ec2 create-tags --resources {ami} --tags Key={tag},Value=True"
+artifacts = manifest["builds"][0]["artifact_id"].split(",")
+print artifacts
 artifacts = [artifact.split(":") for artifact in artifacts]
+print artifacts
+cmd_t = "AWS_DEFAULT_REGION={region} AWS_PROFILE={profile} aws ec2 create-tags --resources {ami} --tags Key={tag},Value=True"
 cmds = [cmd_t.format(region=region, profile=profile, ami=packer_ami,
                      tag=packer_tag,) for region, packer_ami in artifacts]
 for cmd in cmds:
