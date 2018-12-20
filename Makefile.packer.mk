@@ -35,7 +35,7 @@ packer-clean:
 packer-get-amis:
 	@cat ${PACKER_MANIFEST} \
 	| jq -r .builds[].artifact_id \
-	| cut -d: -f2
+	| cut -d, -f1
 
 # retrieves key from PACKER_KEY_SSM_PATH
 packer-get-key:
