@@ -80,3 +80,12 @@ tf-taint: tf-set-tf-target
 tf-graph: require-dot
 	$(call _announce_target, $@)
 	${TERRAFORM_EXEC} graph | dot -Tpng > graph.png
+
+# Start Docker based targets
+tf-base:
+	docker run --rm -i              \
+	-v ~/.aws:/root/.aws            \
+	-v $(value SRC_ROOT):/workspace \
+	-w /workspace/ --entrypoint sh  \
+	hashicorp/terraform:0.11.10     \
+	${DOCKER_CMD}
