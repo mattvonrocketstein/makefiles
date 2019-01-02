@@ -105,7 +105,7 @@ sceptre-describe-envs-exclude-filter: assert-filter
 sceptre-pull-export: assert-env assert-stack assert-name
 	@sceptre --dir ${SCEPTRE_ROOT} \
 	describe-stack-outputs $(value env) $(value stack) \
-	| make yaml-to-json \
+	| make --no-print-directory yaml-to-json \
 	| jq -r '.[]|select(.OutputKey=="$(value name)").OutputValue'
 
 
