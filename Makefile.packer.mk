@@ -14,11 +14,10 @@ export PACKER_IMAGE PACKER_MANIFEST
 export PACKER_CONFIG PACKER_KEY_FILE PACKER_CONFIG_YAML PACKER_CONFIG_JSON
 
 PACKER_REPO:=$(shell basename -s .git `git config --get remote.origin.url`)
-PACKER_AMI_NAME:=$(shell python -c "print '${PACKER_REPO}'.replace('ami-', '').replace('ami','')")
-export PACKER_REPO PACKER_AMI_NAME
+export PACKER_REPO
 
-# packer hates yaml, but just to have comments
-# we sometimes use it anyway and convert to json
+# packer hates yaml, but just for comments
+# we use it anyway and convert to json
 packer-render: assert-PACKER_CONFIG_YAML assert-PACKER_CONFIG_JSON
 	$(call _announce_target, $@)
 	cat $(value PACKER_CONFIG_YAML) | make yaml-to-json > $(value PACKER_CONFIG_JSON)
@@ -79,7 +78,9 @@ packer-tag: assert-PACKER_TAG assert-PACKER_MANIFEST
 packer-build: assert-PACKER_IMAGE assert-PACKER_CONFIG packer-get-key
 	$(call _announce_target, $@)
 	cat $(value PACKER_CONFIG) | jq .
-	docker run -i \
+	[ -z "$${PACKER_AMI_NAME:-}" ] \
+	&& PACKER_AMI_NAME=`python -c "print '${PACKER_REPO}'.replace('ami-', '').replace('ami','')"` \
+	; docker run -i \
 	-v `pwd`:/workspace \
 	-v ~/.aws:/root/.aws \
 	-w /workspace \
