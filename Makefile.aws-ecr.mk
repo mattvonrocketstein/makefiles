@@ -21,6 +21,7 @@ ecr-login: assert-ECR_REGION assert-ECR_REGISTRY
 	$(call _announce_target, $@)
 	@# Careful, tricky escaping
 	$(eval LOGIN_CMD = "aws ecr get-login --no-include-email --region $(value ECR_REGION) --registry-ids $(value ECR_REGISTRY)")
+	@echo 'executing: ${LOGIN_CMD}'
 	@$$(eval ${LOGIN_CMD})
 
 # example usage:
