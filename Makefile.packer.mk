@@ -90,3 +90,9 @@ packer-build: assert-PACKER_IMAGE assert-PACKER_CONFIG packer-get-key
 	-var branch=`git name-rev HEAD|awk '{print $$NF}'` \
 	-var packer_manifest_file=$(value PACKER_MANIFEST) \
 	$${PACKER_EXTRA_ARGS:-} $(value PACKER_CONFIG)
+
+# validates yaml, attempts to convert to JSON
+packer-static-analysis:
+	$(call _announce_target, $@)
+	path=packer.yaml make yaml-validate
+	make packer-render
