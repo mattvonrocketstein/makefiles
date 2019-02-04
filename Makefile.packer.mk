@@ -46,34 +46,30 @@ packer-get-key:
 	> ${SRC_ROOT}/$(value PACKER_KEY_FILE)
 	chmod go-rwx ${SRC_ROOT}/$(value PACKER_KEY_FILE)
 
-# this is horrible, but there's no time to cleanup.
-# this script should be baked into our packer docker
-define PY_PACKER_TAGGER
-import os
-import json
-packer_manifest = os.environ["PACKER_MANIFEST"]
-packer_config = os.environ["PACKER_CONFIG_JSON"]
-packer_tag = os.environ["PACKER_TAG"]
-print "parsing packer manifest at: {}".format(packer_manifest)
-assert os.path.exists(packer_manifest), "manifest does not exist!"
-manifest = json.loads(open(packer_manifest).read())
-print "parsing packer config at: {}".format(packer_config)
-assert os.path.exists(packer_config), "config does not exist!"
-config = json.loads(open(packer_config).read())
-profile = config["builders"][0]["profile"]
-artifacts = manifest["builds"][0]["artifact_id"].split(",")
-print artifacts
-artifacts = [artifact.split(":") for artifact in artifacts]
-print artifacts
-cmd_t = "AWS_DEFAULT_REGION={region} AWS_PROFILE={profile} aws ec2 create-tags --resources {ami} --tags Key={tag},Value=True"
-cmds = [cmd_t.format(region=region, profile=profile, ami=packer_ami,
-                     tag=packer_tag,) for region, packer_ami in artifacts]
-for cmd in cmds:
-    print "Executing: {}".format(cmd)
-    os.system(cmd)
-endef
-packer-tag: assert-PACKER_TAG assert-PACKER_MANIFEST
-	@printf '$(subst $(newline),\n,${PY_PACKER_TAGGER})'|python /dev/stdin
+# we may consider changing name calls in docker-packer later since
+# this call is more generic and may be used to add any tag to build ami
+packer-tag: assert-PACKER_TAG assert-PACKER_MANIFEST assert-PACKER_CONFIG_JSON assert-PACKER_IMAGE
+	$(call _announce_target, $@)
+	docker run -i \
+	-e PACKER_CONFIG_JSON \
+	-e PACKER_MANIFEST \
+	-e PACKER_TAG \
+	-v `pwd`:/workspace \
+	-v ~/.aws:/root/.aws \
+	-w /workspace \
+	$(value PACKER_IMAGE) tag-image whitelist
+
+packer-copy-tags: assert-PACKER_TAG assert-PACKER_MANIFEST assert-PACKER_CONFIG_JSON assert-PACKER_IMAGE
+	$(call _announce_target, $@)
+	docker run -i \
+	-e PACKER_CONFIG_JSON \
+	-e PACKER_MANIFEST \
+	-e PACKER_TAG \
+	-v `pwd`:/workspace \
+	-v ~/.aws:/root/.aws \
+	-w /workspace \
+	$(value PACKER_IMAGE) tag-image 
+
 
 packer-build: assert-PACKER_IMAGE assert-PACKER_CONFIG packer-get-key
 	$(call _announce_target, $@)
