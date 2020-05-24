@@ -31,6 +31,10 @@
 #     * `_INFO`, `_DEBUG`,`_WARN`: standard loggers
 #
 
+SHELL := bash
+MAKEFLAGS += --warn-undefined-variables --no-print-directory
+.SHELLFLAGS := -euo pipefail -c
+
 # ${MAKEFLAGS} is standard, but does not include --file arguments, see
 # https://www.gnu.org/software/make/manual/html_node/Options_002fRecursion.html
 # this is a constant annoyance whenever make targets want to invoke other make
@@ -86,7 +90,7 @@ endef
 #   	echo $${USER}@$${HOST}
 #
 define _announce_assert
-	@printf "$(COLOR_YELLOW)(`hostname`) [${1}]:$(NO_COLOR) (=$2)\n" 1>&2;
+	@printf "$(COLOR_YELLOW)(`hostname`)$(NO_COLOR) [${1}]:$(NO_COLOR) (=$2)\n" 1>&2;
 endef
 define _assert_var
 	@if [ "${${*}}" = "" ]; then \
@@ -167,8 +171,11 @@ NO_COLOR:=\033[0m
 COLOR_GREEN=\033[92m
 COLOR_OK=${COLOR_GREEN}
 COLOR_RED=\033[91m
+COLOR_CYAN=\033[96m
+COLOR_LBLUE=\033[94m
 ERROR_COLOR=${COLOR_RED}
 WARN_COLOR:=\033[93m
+	WARN_COLOR:=\033[93m
 COLOR_YELLOW=${WARN_COLOR}
 OK_STRING=$(COLOR_GREEN)[OK]$(NO_COLOR)
 ERROR_STRING=$(ERROR_COLOR)[ERROR]$(NO_COLOR)
@@ -176,14 +183,12 @@ WARN_STRING=$(WARN_COLOR)[WARNING]$(NO_COLOR)
 # Colors
 ESC_SEQ="\x1b["
 COL_RESET=$ESC_SEQ"39;49;00m"
-COL_RED=$ESC_SEQ"31;01m"
 COL_GREEN=$ESC_SEQ"32;01m"
 COL_YELLOW=$ESC_SEQ"33;01m"
-COL_BLUE=$ESC_SEQ"34;01m"
 COL_MAGENTA=$ESC_SEQ"35;01m"
-COL_CYAN=$ESC_SEQ"36;01m"
+
 define _announce_target
-	@printf "$(COLOR_GREEN)(`hostname`) [target]:$(NO_COLOR) $@\n" 1>&2
+	@printf "$(COLOR_GREEN)(`hostname`)$(NO_COLOR)$(COLOR_CYAN) *$(abspath $(firstword $(MAKEFILE_LIST)))*$(NO_COLOR)\n   $(COLOR_LBLUE)[target]:$(NO_COLOR) $@\n" 1>&2
 endef
 
 define _stage
