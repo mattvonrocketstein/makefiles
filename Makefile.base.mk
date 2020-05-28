@@ -145,7 +145,12 @@ _help-helper:
 help:
 	$(call _announce_target, $@)
 	@make _help-helper \
-	| python3 -c "\
+	| make _help-parser
+
+.ONESHELL:
+_help-parser: SHELL := python3
+_help-parser: .SHELLFLAGS := -c
+_help-parser:
 	from __future__ import print_function; \
 	import os, re, sys, functools; \
 	from collections import OrderedDict; \
@@ -189,7 +194,7 @@ help:
 					args = '  args: {}'.format(h['args']) if h['args'] else '' \
 				) for _, h in targets.items() \
 			]),\
-	)"
+	)
 
 
 # Helpers and data for user output things
