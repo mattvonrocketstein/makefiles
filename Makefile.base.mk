@@ -1,3 +1,4 @@
+#!/usr/bin/make -f
 # Makefile.base.mk:
 #
 # DESCRIPTION:
@@ -147,44 +148,45 @@ help:
 	@make _help-helper \
 	| make _help-parser
 
+
 .ONESHELL:
-_help-parser: SHELL := python3
-_help-parser: .SHELLFLAGS := -c
+_help-parser: private SHELL := python3
+_help-parser: private .SHELLFLAGS := -c
 _help-parser:
-	from __future__ import print_function; \
-	import os, re, sys, functools; \
-	from collections import OrderedDict; \
-	inp = sys.stdin.read(); \
-	lines = inp.split('\n'); \
-	ignored = 'Makefile list fail i in not if else for'.split(); \
-	fstarts = 'assert range('.split(); \
-	targets = [ x.strip() for i, x in enumerate(lines) if x.strip() not in ignored and not any([x.startswith(y) for y in fstarts]) ]; \
-	inp2 = os.popen('make -p no_targets__'); \
-	inp2_lines = inp2.readlines() ; \
-	hints = [ [ line.strip(), '\n'.join(inp2_lines[i:i+6]) ] for i, line in enumerate(inp2_lines) if any([line.strip().startswith(t+':') for t in targets]) ]; \
-	hints = [ [ t, block[block.find('recipe to execute (from '):].split('\n')[0] ] for t, block in hints]; \
-	hints = [ [ t, block[block.find('(from ')+7:block.rfind(')')+2]] for t, block in hints ]; \
-	hints = [ [ t, block.split(', ')[0][:-1] +' '+ block.split(', ')[-1][:-2]] for t, block in hints ]; \
-	hints = [ dict(target=t.split(':')[0], args=t.split(':')[1:], file=block.strip().split() and block.split()[0], line=block.strip().split() and block.split(' line ')[-1]) for t, block in hints ]; \
-	hints = [ dict(target=h['target'], args=[_.strip() for _ in h['args'] if _], file=(h['file'] and h['file'].replace(os.getcwd(), '.')) or None, line=h['line']) for h in hints ]; \
-	hints = [ {k: v for d in [h, dict()] for k, v in d.items()} for h in hints]; \
+	from __future__ import print_function
+	import os, re, sys, functools
+	from collections import OrderedDict
+	inp = sys.stdin.read()
+	lines = inp.split('\n')
+	ignored = 'Makefile list fail i in not if else for'.split()
+	fstarts = 'assert range('.split()
+	targets = [ x.strip() for i, x in enumerate(lines) if x.strip() not in ignored and not any([x.startswith(y) for y in fstarts]) ]
+	inp2 = os.popen('make -p no_targets__')
+	inp2_lines = inp2.readlines()
+	hints = [ [ line.strip(), '\n'.join(inp2_lines[i:i+6]) ] for i, line in enumerate(inp2_lines) if any([line.strip().startswith(t+':') for t in targets]) ]
+	hints = [ [ t, block[block.find('recipe to execute (from '):].split('\n')[0] ] for t, block in hints]
+	hints = [ [ t, block[block.find('(from ')+7:block.rfind(')')+2]] for t, block in hints ]
+	hints = [ [ t, block.split(', ')[0][:-1] +' '+ block.split(', ')[-1][:-2]] for t, block in hints ]
+	hints = [ dict(target=t.split(':')[0], args=t.split(':')[1:], file=block.strip().split() and block.split()[0], line=block.strip().split() and block.split(' line ')[-1]) for t, block in hints ]
+	hints = [ dict(target=h['target'], args=[_.strip() for _ in h['args'] if _], file=(h['file'] and h['file'].replace(os.getcwd(), '.')) or None, line=h['line']) for h in hints ]
+	hints = [ {k: v for d in [h, dict()] for k, v in d.items()} for h in hints]
 	hints = [ dict(target=h['target'], file=h['file'], line=h['line'], \
 		prereqs=[x for x in h['args'] if not x.startswith('assert-')], \
 		args=functools.reduce(lambda x,y: x+y, [_.split() for _ in h['args']],[]),) \
-		for h in hints ]; \
-	hints = [ dict(target=h['target'], args=[x[len('assert-'):] for x in h['args'] if x.startswith('assert-')], file=h['file'], line=h['line']) for h in hints ]; \
-	hints = [ {k: v for d in [h, {}] for k, v in d.items()} for h in hints]; \
-	targets = sorted(hints, key=lambda _: _['target']); \
-	targets = OrderedDict([[_['target'], _] for _ in targets]); \
-	sources = [ [f, [h for h in hints if h['file']==f]] for f in set([x['file'] for x in hints]) if f ]; \
-	sources = sorted(sources, key=lambda _: _[0]); \
-	sources=OrderedDict(sources); \
-	hdr = '\n$(COLOR_YELLOW)--- TARGETS BY SOURCE---$(NO_COLOR)\n\n  '; \
+		for h in hints ]
+	hints = [ dict(target=h['target'], args=[x[len('assert-'):] for x in h['args'] if x.startswith('assert-')], file=h['file'], line=h['line']) for h in hints ]
+	hints = [ {k: v for d in [h, {}] for k, v in d.items()} for h in hints]
+	targets = sorted(hints, key=lambda _: _['target'])
+	targets = OrderedDict([[_['target'], _] for _ in targets])
+	sources = [ [f, [h for h in hints if h['file']==f]] for f in set([x['file'] for x in hints]) if f ]
+	sources = sorted(sources, key=lambda _: _[0])
+	sources=OrderedDict(sources)
+	hdr = '\n$(COLOR_YELLOW)--- TARGETS BY SOURCE---$(NO_COLOR)\n\n  '
 	print(hdr + '\n  '.join(['[$(COLOR_GREEN){}$(NO_COLOR)] ($(COLOR_CYAN){}$(NO_COLOR))'.format( \
-		_, '..') for _, h in sources.items()])); \
-	msg_t = '[$(COLOR_GREEN){target}$(NO_COLOR)]\n'; \
-	msg_t+= '    source: $(COLOR_CYAN){source}$(NO_COLOR)\n'; \
-	msg_t+= '  {args}'; \
+		_, '..') for _, h in sources.items()]))
+	msg_t = '[$(COLOR_GREEN){target}$(NO_COLOR)]\n'
+	msg_t+= '    source: $(COLOR_CYAN){source}$(NO_COLOR)\n'
+	msg_t+= '  {args}'
 	print(\
 		'\n$(COLOR_YELLOW)--- ALL TARGETS ---$(NO_COLOR)\n\n  ' + \
 		'\n  '.join(\
