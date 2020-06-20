@@ -20,10 +20,12 @@
 #  $ make -f Makefile.base.mk -f Makefile.github.mk org=your-github-org
 #
 ##
-github-clone-org: assert-org
+
+github-clone-org: assert-org assert-user assert-token
 	@pushd $${cwd:-.} \
-	; curl -s https://api.github.com/orgs/$$org/repos?per_page=200 \
-	| jq -r '.[].clone_url' \
+	; curl -u $$user:$$token \
+ 		-s https://api.github.com/orgs/$$org/repos?per_page=200 \
+	| jq -r '.[].ssh_url' \
 	| python3 -c '\
 	import os, sys \
 	; print("\n".join( \
