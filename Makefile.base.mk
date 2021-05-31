@@ -106,6 +106,7 @@ define _assertnot_var
 		exit 1; \
 	fi
 endef
+.SILENT: assert
 assert-%:
 	$(call _announce_assert, $@, ${${*}})
 	$(call _assert_var, $*)
