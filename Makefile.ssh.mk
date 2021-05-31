@@ -26,6 +26,8 @@ rsync: assert-RSYNC_USER assert-RSYNC_KEY assert-RSYNC_DEST assert-RSYNC_SRC ass
 # 	$(call _announce_target, $@)
 # 	$(eval SSH_CMD ?= ${SSH_CMD:-bash})
 # 	@echo 'set SSH_CMD: ${SSH_CMD}'
+ssh-get-pubkey: assert-path
+	@ssh-keygen -y -f $$path 
 
 ssh-generic: assert-SSH_USER assert-SSH_HOST assert-SSH_KEY
 	$(call _announce_target, $@)
