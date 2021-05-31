@@ -1,3 +1,4 @@
+#!/usr/bin/make -f
 # Makefile.base.mk:
 #
 # DESCRIPTION:
@@ -90,7 +91,8 @@ endef
 #   	echo $${USER}@$${HOST}
 #
 define _announce_assert
-	@printf "$(COLOR_YELLOW)(`hostname`)$(NO_COLOR) [${1}]:$(NO_COLOR) (=$2)\n" 1>&2;
+	export tmp=`echo '${1}' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$$//'` \
+	; printf "$(COLOR_YELLOW)(`hostname`)$(NO_COLOR) [$$tmp]:$(NO_COLOR) (=$2)\n" 1>&2;
 endef
 define _assert_var
 	@if [ "${${*}}" = "" ]; then \
@@ -104,6 +106,7 @@ define _assertnot_var
 		exit 1; \
 	fi
 endef
+.SILENT: assert
 assert-%:
 	$(call _announce_assert, $@, ${${*}})
 	$(call _assert_var, $*)
@@ -116,13 +119,15 @@ assertnot-%:
 #    my-target: requires-foo_cmd
 #      foo_cmd arg1,arg2
 #
-require-%:
+require-%: ## bonk bonk
 	@which $* > /dev/null
 
 # Boilerplate and makefile-target `help` and `list`:
 #
 # This causes `make help` and `make list` to publish all the make-target names
-# to stdout.  This mostly works correctly even with usage of makefile-includes.
+# to stdout.  This is a hack, since make isn't exactly built to support reflection,
+# but all the complexity here is inspection, string parsing, and still works
+# (mostly) correctly even in case of usage of macros and make-includes.
 #
 # example usage: (from command line)
 #
@@ -142,11 +147,58 @@ _help-helper:
 help:
 	$(call _announce_target, $@)
 	@make _help-helper \
-	| python -c"\
-	from __future__ import print_function; import sys; \
-	[print(x.strip()) for x in sys.stdin.readlines() \
-	if x.strip() not in 'Makefile list fail i in not if else for'.split() \
-	and not any([x.startswith(y) for y in 'assert range('.split()])]"
+	| make _help-parser
+
+
+.ONESHELL:
+_help-parser: private SHELL := python3
+_help-parser: private .SHELLFLAGS := -c
+_help-parser:
+	from __future__ import print_function
+	import os, re, sys, functools
+	from collections import OrderedDict
+	inp = sys.stdin.read()
+	lines = inp.split('\n')
+	ignored = 'Makefile list fail i in not if else for'.split()
+	fstarts = 'assert range('.split()
+	targets = [ x.strip() for i, x in enumerate(lines) if x.strip() not in ignored and not any([x.startswith(y) for y in fstarts]) ]
+	inp2 = os.popen('make -p no_targets__')
+	inp2_lines = inp2.readlines()
+	hints = [ [ line.strip(), '\n'.join(inp2_lines[i:i+6]) ] for i, line in enumerate(inp2_lines) if any([line.strip().startswith(t+':') for t in targets]) ]
+	hints = [ [ t, block[block.find('recipe to execute (from '):].split('\n')[0] ] for t, block in hints]
+	hints = [ [ t, block[block.find('(from ')+7:block.rfind(')')+2]] for t, block in hints ]
+	hints = [ [ t, block.split(', ')[0][:-1] +' '+ block.split(', ')[-1][:-2]] for t, block in hints ]
+	hints = [ dict(target=t.split(':')[0], args=t.split(':')[1:], file=block.strip().split() and block.split()[0], line=block.strip().split() and block.split(' line ')[-1]) for t, block in hints ]
+	hints = [ dict(target=h['target'], args=[_.strip() for _ in h['args'] if _], file=(h['file'] and h['file'].replace(os.getcwd(), '.')) or None, line=h['line']) for h in hints ]
+	hints = [ {k: v for d in [h, dict()] for k, v in d.items()} for h in hints]
+	hints = [ dict(target=h['target'], file=h['file'], line=h['line'], \
+		prereqs=[x for x in h['args'] if not x.startswith('assert-')], \
+		args=functools.reduce(lambda x,y: x+y, [_.split() for _ in h['args']],[]),) \
+		for h in hints ]
+	hints = [ dict(target=h['target'], args=[x[len('assert-'):] for x in h['args'] if x.startswith('assert-')], file=h['file'], line=h['line']) for h in hints ]
+	hints = [ {k: v for d in [h, {}] for k, v in d.items()} for h in hints]
+	targets = sorted(hints, key=lambda _: _['target'])
+	targets = OrderedDict([[_['target'], _] for _ in targets])
+	sources = [ [f, [h for h in hints if h['file']==f]] for f in set([x['file'] for x in hints]) if f ]
+	sources = sorted(sources, key=lambda _: _[0])
+	sources=OrderedDict(sources)
+	hdr = '\n$(COLOR_YELLOW)--- TARGETS BY SOURCE---$(NO_COLOR)\n\n  '
+	print(hdr + '\n  '.join(['[$(COLOR_GREEN){}$(NO_COLOR)] ($(COLOR_CYAN){}$(NO_COLOR))'.format( \
+		_, '..') for _, h in sources.items()]))
+	msg_t = '[$(COLOR_GREEN){target}$(NO_COLOR)]\n'
+	msg_t+= '    source: $(COLOR_CYAN){source}$(NO_COLOR)\n'
+	msg_t+= '  {args}'
+	print(\
+		'\n$(COLOR_YELLOW)--- ALL TARGETS ---$(NO_COLOR)\n\n  ' + \
+		'\n  '.join(\
+			[	msg_t.format( \
+					target = h['target'], \
+					source = ':'.join([h['file'], h['line']]) if (h['file'] and h['line']) else '?', \
+					args = '  args: {}'.format(h['args']) if h['args'] else '' \
+				) for _, h in targets.items() \
+			]),\
+	)
+
 
 # Helpers and data for user output things
 #
@@ -154,18 +206,6 @@ help:
 #
 #    my-target:
 #    	  $(call _announce_target, $@)
-#
-# class bcolors:
-#     HEADER = '\033[95m'
-#     OKBLUE = '\033[94m'
-#     OKGREEN = '\033[92m'
-#     WARNING = '\033[93m'
-#     FAIL = '\033[91m'
-#     ENDC = '\033[0m'
-#     BOLD = '\033[1m'
-#     UNDERLINE = '\033[4m'
-# To use code like this, you can do something like
-# print bcolors.WARNING + "\033[93mWarning:\033[0m" + bcolors.ENDC
 #
 NO_COLOR:=\033[0m
 COLOR_GREEN=\033[92m
